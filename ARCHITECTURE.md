@@ -274,6 +274,23 @@ The **Anchor Resolver** converts any anchor into a short text excerpt (quoted pa
 }
 ```
 
+## Technology Stack
+
+| Layer | Choice | Rationale |
+|---|---|---|
+| Frontend | React + Vite + TypeScript | Fast iteration; anchor payload types shared with the backend contract |
+| Text anchoring | Native `window.getSelection()` | No dependency needed to capture offsets and the quoted passage |
+| Region anchoring | Click on the chart, normalized 0–1 | Resolution-independent, so it survives any display size |
+| Temporal anchoring | Transcript line timestamps | Same payload shape a real video player's `currentTime` produces |
+| Backend | Python + FastAPI + Pydantic | Pydantic models double as the LLM JSON schema |
+| LLM | GitHub Models `gpt-4o-mini` via OpenAI-compatible SDK | Free with a GitHub token; provider swap is a base URL change |
+| Scoring | Structured outputs / JSON schema | Guarantees all five dimensions return with evidence quotes |
+| Sessions | In-memory dict | MVP scope excludes a database |
+| Content + rubric | Static JSON | One content piece; rubric versioned as data, not prompt text |
+
+Rate limits on GitHub Models are low. That is fine for a demo, but swap to Azure OpenAI or
+OpenAI for many concurrent users — same SDK, only the base URL and key change.
+
 ## MVP Scope
 
 **In:** one hardcoded piece of content (S3), all three anchor kinds, 3–5 turn dialogue, full rubric scoring, report card.
