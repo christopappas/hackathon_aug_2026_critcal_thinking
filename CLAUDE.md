@@ -189,6 +189,10 @@ Preserve these when changing things — each exists for a stated reason:
   `transform` attribute, which teleports a jaw to the origin on frame one.
 - **Every mood has a static pose** under `prefers-reduced-motion`, because motion is the
   mascot's only state channel. A blanket `animation: none` would mute it.
+- **Exports (`app/export.py`) mirror `ReportCard.tsx` section-for-section**, not a redesigned
+  summary. Any student- or model-supplied string reaching `reportlab`'s `Paragraph` must go
+  through `xml.sax.saxutils.escape` first - evidence quotes are verbatim student text, and an
+  unescaped `<` or `&` mis-renders or breaks the PDF. `openpyxl` cells need no such escaping.
 
 ## Adding content
 

@@ -104,6 +104,8 @@ clicking the outlier cluster resolves to the outliers, not the trend line beneat
 | `POST` | `/explore/start` | Open an unscored discussion anchored to a clicked spot, replacing any thread already open |
 | `POST` | `/explore/message` | Continue the active explore thread (capped at 30 messages as an anti-abuse ceiling, not a turn limit) |
 | `GET` | `/report/{id}` | Report card |
+| `GET` | `/report/{id}/pdf` | Report card as a downloadable PDF |
+| `GET` | `/report/{id}/xlsx` | Report card as a downloadable XLSX (Summary + Dimensions sheets) |
 | `GET` | `/rubric` | The rubric, for UI display |
 | `GET` | `/health` | Status + whether the LLM is live |
 
@@ -167,3 +169,7 @@ at session-creation time: `min_turns` must be at least 1, `max_turns` can't be b
   at a time, replaced whenever a new spot is clicked. It is never turn-guarded and never read by
   `evaluator.py` - going deep on a tangent should never help or hurt the graded report. The
   30-message cap is an anti-abuse ceiling, not a pedagogical limit like `MAX_TURNS`.
+- **PDF/XLSX exports (`app/export.py`) mirror the on-screen report card section-for-section**,
+  not a different summary of it. Student-typed text (evidence quotes) is XML-escaped before it
+  reaches reportlab's `Paragraph` markup, since a raw `<` or `&` in what a student typed would
+  otherwise mis-render or break the PDF.

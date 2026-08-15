@@ -77,6 +77,15 @@ export function ReportCard({ report, onRestart, skin }: Props) {
         <p>{report.next_step}</p>
       </section>
 
+      <div className="export-row">
+        <a className="export-link" href={`/api/report/${report.session_id}/pdf`}>
+          Download PDF
+        </a>
+        <a className="export-link" href={`/api/report/${report.session_id}/xlsx`}>
+          Download XLSX
+        </a>
+      </div>
+
       <button type="button" className="restart" onClick={onRestart}>
         Try another one
       </button>
