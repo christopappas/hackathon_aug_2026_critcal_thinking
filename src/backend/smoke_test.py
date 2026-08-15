@@ -72,7 +72,15 @@ def main() -> int:
         with urllib.request.urlopen(f"{BASE}{asset}", timeout=20) as resp:
             assert resp.status == 200, f"missing asset {asset}"
         assert content["chart"]["regions"], f"{item['id']} has no clickable regions"
-        print(f"  ok: {item['id']} -> {asset}")
+        print(f"  ok: {item['id']} -> {asset} | turns {probe['min_turns']}-{probe['max_turns']}")
+
+    # study-music overrides the template's default turn range as a worked example.
+    music_session = call("POST", "/session", {"content_id": "study-music"})
+    assert (music_session["min_turns"], music_session["max_turns"]) == (2, 4), (
+        "expected study-music's template override (2-4) to reach the session, "
+        f"got {music_session['min_turns']}-{music_session['max_turns']}"
+    )
+    print("  study-music's template override (2-4 turns) reached the session correctly")
 
     bad = None
     try:

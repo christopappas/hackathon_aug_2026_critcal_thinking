@@ -111,7 +111,10 @@ break in the live path shows up as silently-scripted replies rather than an erro
 Preserve these when changing things — each exists for a stated reason:
 
 - **The turn guard is server-side.** The dots in the UI are display only; the backend
-  rejects a 6th message with 409, so the cap cannot be bypassed from the client.
+  rejects a message past `max_turns` with 409, so the cap cannot be bypassed from the client.
+  `min_turns`/`max_turns` are per-session, sourced from the content template if it sets them
+  (`config.content_turn_range()`) and validated at session-creation time, so a session's cap
+  isn't always the global 3-5.
 - **Dialogue and scoring are separate LLM calls.** Sharing one prompt makes the model grade
   while it coaches, which leaks the rubric to the student mid-conversation.
 - **Scoring is post-hoc over the full transcript**, because the Depth of Follow-up dimension
@@ -137,6 +140,10 @@ Drop a new JSON file into `src/backend/app/data/content/` and it appears in the 
 next restart — no code change. Copy an existing file for the shape. Required keys: `id`,
 `title`, `body`, `chart` (with `regions`), `video.transcript`, and `opening_prompt`. Use
 `order` to place it in the picker and `grade_level` for the badge.
+
+Optional `min_turns` / `max_turns` override the global default (`config.MIN_TURNS`/
+`MAX_TURNS`, 3-5) for just this piece — see `content_turn_range()` in `app/config.py` and
+`study-music.json` for a worked example (2-4).
 
 ## Two Bloom's implementations now coexist
 

@@ -140,6 +140,12 @@ next restart — no code change. Copy an existing file for the shape. Required k
 `title`, `body`, `chart` (with `regions`), `video.transcript`, and `opening_prompt`.
 Use `order` to place it in the picker and `grade_level` for the badge.
 
+Optionally add `min_turns` / `max_turns` to give this piece its own exchange length instead of
+the global default (`MIN_TURNS`/`MAX_TURNS`, 3-5) — a quick single-flaw piece might warrant
+fewer turns, a layered one more. See `study-music.json` (2-4) for a worked example. Validated
+at session-creation time: `min_turns` must be at least 1, `max_turns` can't be below
+`min_turns`, and there's a ceiling of 10 so a typo can't create a marathon session.
+
 ## Notes on the design
 
 - **The turn guard is server-side.** The dots in the UI are display only; the backend rejects a

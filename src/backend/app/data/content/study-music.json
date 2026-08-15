@@ -2,6 +2,8 @@
   "id": "study-music",
   "order": 5,
   "grade_level": 6,
+  "min_turns": 2,
+  "max_turns": 4,
   "title": "Does Music Make You Study Better?",
   "subject": "Science fair",
   "blurb": "A science fair poster says music makes you smarter. Look at how the test was set up.",

@@ -63,7 +63,8 @@ def create_session(request: SessionRequest | None = None) -> SessionResponse:
         content = config.load_content(content_id)
     except KeyError:
         raise HTTPException(status_code=404, detail=f"unknown content id: {content_id}") from None
-    session = store.create(content["id"], config.MIN_TURNS, config.MAX_TURNS)
+    min_turns, max_turns = config.content_turn_range(content)
+    session = store.create(content["id"], min_turns, max_turns)
     return SessionResponse(
         session_id=session.session_id,
         content=content,
