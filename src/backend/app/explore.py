@@ -89,12 +89,7 @@ _STUB_OPENERS = [
     "Good spot to dig into. What do you notice when you look closely?",
 ]
 
-_STUB_REPLIES = [
-    "That's a fair point. What makes you say that?",
-    "I see what you mean. Is there anything here that makes you doubt it a little?",
-    "Good thinking. What would change your mind about this?",
-    "That tracks. What's one more thing you're curious about here?",
-]
+_DOUBT_WORDS = ("maybe", "might", "could", "unless", "assume", "probably", "i think", "not sure")
 
 
 def _stub_opening(anchor_excerpt: str | None) -> str:
@@ -103,8 +98,30 @@ def _stub_opening(anchor_excerpt: str | None) -> str:
     return _STUB_OPENERS[0]
 
 
-def _stub_reply(thread: ExploreThread) -> str:
-    return _STUB_REPLIES[len(thread.messages) % len(_STUB_REPLIES)]
+def _snippet(text: str, limit: int = 50) -> str:
+    text = text.strip()
+    if len(text) <= limit:
+        return text
+    return text[:limit].rsplit(" ", 1)[0] + "..."
+
+
+def _stub_reply(message: str) -> str:
+    """A reply shaped by what the student actually just wrote, not a canned rotation.
+
+    There's no LLM in this path, so this is deliberately crude keyword-matching rather
+    than real understanding - but it beats cycling through fixed lines regardless of
+    what was typed, which is what made offline mode feel like it wasn't listening.
+    """
+    snippet = _snippet(message)
+    lower = message.lower()
+
+    if "?" in message:
+        return f'Good question. Before I answer - what\'s your own best guess about "{snippet}"?'
+    if any(word in lower for word in _DOUBT_WORDS):
+        return f'You hedged on "{snippet}" - what would make you more sure either way?'
+    if len(message.split()) <= 5:
+        return f'Say more about "{snippet}" - what makes you think that?'
+    return f'"{snippet}" is a solid point. What would you ask next to test it?'
 
 
 def generate_opening(content: dict, anchor_excerpt: str | None) -> tuple[str, bool]:
@@ -134,4 +151,4 @@ def generate_reply(thread: ExploreThread, content: dict, message: str) -> tuple[
         )
         return payload["reply"], True
     except LLMUnavailable:
-        return _stub_reply(thread), False
+        return _stub_reply(message), False

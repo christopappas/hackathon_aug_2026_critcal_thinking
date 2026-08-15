@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { POPOVER_WIDTH } from "./ExplorePopover";
 import type { Anchor, Content } from "../types";
 
 type Position = { x: number; y: number };
@@ -13,6 +14,16 @@ interface Props {
 
 export function ContentViewer({ content, activeAnchor, onAnchor, onExplore, disabled }: Props) {
   const chartRef = useRef<HTMLDivElement>(null);
+  const viewerRef = useRef<HTMLElement>(null);
+
+  // The popover is viewport-fixed, so on a wide screen a click near the right
+  // edge of this column can still leave room to drift into the chat panel.
+  // Clamp against this column's own right edge, not just the window's.
+  function popoverPosition(x: number, y: number): Position {
+    const bounds = viewerRef.current?.getBoundingClientRect();
+    const maxX = bounds ? bounds.right - POPOVER_WIDTH - 12 : x;
+    return { x: Math.min(x, maxX), y };
+  }
 
   function handleTextSelect() {
     if (disabled) return;
@@ -23,7 +34,7 @@ export function ContentViewer({ content, activeAnchor, onAnchor, onExplore, disa
     const anchor: Anchor = { kind: "text", quote, start, end: start + quote.length };
     onAnchor(anchor);
     const rect = selection!.getRangeAt(0).getBoundingClientRect();
-    onExplore(anchor, { x: rect.left, y: rect.bottom + 8 });
+    onExplore(anchor, popoverPosition(rect.left, rect.bottom + 8));
   }
 
   function handleChartClick(event: React.MouseEvent<HTMLDivElement>) {
@@ -34,11 +45,11 @@ export function ContentViewer({ content, activeAnchor, onAnchor, onExplore, disa
     // Zero-size box: the backend resolves an anchor by its center point.
     const anchor: Anchor = { kind: "region", box: [x, y, 0, 0] };
     onAnchor(anchor);
-    onExplore(anchor, { x: event.clientX, y: event.clientY + 12 });
+    onExplore(anchor, popoverPosition(event.clientX, event.clientY + 12));
   }
 
   return (
-    <section className="content-viewer">
+    <section className="content-viewer" ref={viewerRef}>
       <p className="eyebrow">{content.intro}</p>
       <h1>{content.title}</h1>
       <div className="viewer-meta">
@@ -74,7 +85,7 @@ export function ContentViewer({ content, activeAnchor, onAnchor, onExplore, disa
                 onClick={(event) => {
                   const anchor: Anchor = { kind: "temporal", timestamp_s: line.t };
                   onAnchor(anchor);
-                  onExplore(anchor, { x: event.clientX, y: event.clientY + 12 });
+                  onExplore(anchor, popoverPosition(event.clientX, event.clientY + 12));
                 }}
               >
                 <span className="ts">{line.t.toFixed(0)}s</span> {line.text}
