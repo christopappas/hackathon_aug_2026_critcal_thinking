@@ -72,6 +72,8 @@ def create_session(request: SessionRequest | None = None) -> SessionResponse:
         config.MAX_TURNS,
         request.access_profile if request else None,
     )
+    min_turns, max_turns = config.content_turn_range(content)
+    session = store.create(content["id"], min_turns, max_turns)
     return SessionResponse(
         session_id=session.session_id,
         content=content,
