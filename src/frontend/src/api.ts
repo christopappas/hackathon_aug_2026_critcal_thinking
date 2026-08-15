@@ -1,4 +1,4 @@
-import type { Anchor, ChatResponse, ContentSummary, Report, SessionResponse } from "./types";
+import type { Anchor, ChatResponse, ContentSummary, HintResponse, Report, SessionResponse } from "./types";
 
 const BASE = "/api";
 
@@ -30,3 +30,9 @@ export const sendMessage = (sessionId: string, message: string, anchor: Anchor |
 
 export const fetchReport = (sessionId: string) =>
   request<Report>(`/report/${sessionId}`);
+
+export const requestHint = (sessionId: string, anchor: Anchor | null) =>
+  request<HintResponse>("/hint", {
+    method: "POST",
+    body: JSON.stringify({ session_id: sessionId, anchor }),
+  });

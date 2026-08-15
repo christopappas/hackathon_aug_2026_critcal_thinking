@@ -100,6 +100,7 @@ clicking the outlier cluster resolves to the outliers, not the trend line beneat
 | `GET` | `/content` | List the content library for the picker |
 | `POST` | `/session` | Create session for a `content_id`, return content |
 | `POST` | `/chat` | Send message + optional anchor |
+| `POST` | `/hint` | Request the next hint for the current turn (up to 3, then 409) |
 | `GET` | `/report/{id}` | Report card |
 | `GET` | `/rubric` | The rubric, for UI display |
 | `GET` | `/health` | Status + whether the LLM is live |
@@ -149,3 +150,7 @@ Use `order` to place it in the picker and `grade_level` for the badge.
   schema and curbs hallucinated grading, and it doubles as the required score explanation.
 - **The conversation can end early.** After 3 turns the model may set `should_conclude` once
   all rubric dimensions have evidence; 5 is the hard stop.
+- **Hints are layered and cost score, not turns.** Up to 3 hints per turn (level 1 = where to
+  look, level 3 = close to the issue), tracked on the exchange and folded into scoring: 2+
+  hints in a session docks Question Quality and Evidence & Reasoning, enforced deterministically
+  in `evaluator.py` so it holds even in offline heuristic mode.

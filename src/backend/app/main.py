@@ -13,6 +13,8 @@ from .models import (
     ChatResponse,
     ContentSummary,
     Exchange,
+    HintRequest,
+    HintResponse,
     Report,
     SessionRequest,
     SessionResponse,
@@ -66,6 +68,35 @@ def create_session(request: SessionRequest | None = None) -> SessionResponse:
     )
 
 
+@app.post("/hint", response_model=HintResponse)
+def hint(request: HintRequest) -> HintResponse:
+    session = store.get(request.session_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="session not found")
+
+    # Same authority rule as the turn guard: server decides what's allowed, UI just displays it.
+    if session.status == "complete" or session.turns_used >= session.max_turns:
+        raise HTTPException(status_code=409, detail="conversation already complete")
+    if session.pending_hints >= config.MAX_HINTS_PER_TURN:
+        raise HTTPException(status_code=409, detail="no hints remaining for this turn")
+
+    content = config.load_content(session.content_id)
+    excerpt = resolve_anchor(request.anchor, content)
+    hint_level = session.pending_hints + 1
+
+    text, _used_llm = dialogue.generate_hint(session, content, excerpt, hint_level)
+
+    session.pending_hints = hint_level
+    store.save(session)
+
+    return HintResponse(
+        hint=text,
+        hint_level=hint_level,
+        hints_used_this_turn=session.pending_hints,
+        max_hints_per_turn=config.MAX_HINTS_PER_TURN,
+    )
+
+
 @app.post("/chat", response_model=ChatResponse)
 def chat(request: ChatRequest) -> ChatResponse:
     session = store.get(request.session_id)
@@ -88,9 +119,11 @@ def chat(request: ChatRequest) -> ChatResponse:
             llm_response=payload["reply"],
             anchor=request.anchor,
             anchor_excerpt=excerpt,
+            hints_used=session.pending_hints,
         )
     )
     session.turns_used += 1
+    session.pending_hints = 0
 
     hit_max = session.turns_used >= session.max_turns
     may_stop_early = session.can_conclude and payload.get("should_conclude", False)
