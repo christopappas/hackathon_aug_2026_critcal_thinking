@@ -55,13 +55,26 @@ def test_generate_reply_falls_back_to_stub_without_a_token(monkeypatch):
     assert text
 
 
-def test_stub_reply_cycles_rather_than_repeating_every_time():
-    thread = ExploreThread(anchor_excerpt="the chart")
-    seen = set()
-    for i in range(len(explore._STUB_REPLIES)):
-        thread.messages.append(ExploreMessage(student_message="m", llm_response="r"))
-        seen.add(explore._stub_reply(thread))
-    assert len(seen) == len(explore._STUB_REPLIES)
+def test_stub_reply_echoes_what_the_student_actually_wrote():
+    question = explore._stub_reply("Why does the sample only have 10 students?")
+    hedge = explore._stub_reply("Maybe the funding influenced the results.")
+    short = explore._stub_reply("I don't know.")
+    statement = explore._stub_reply(
+        "The bars don't start at zero so the difference looks bigger than it is."
+    )
+
+    assert "Why does the sample" in question
+    assert "Maybe the funding influenced the results" in hedge
+    assert "I don't know" in short
+    assert "bars don't start at zero" in statement
+    # Different kinds of input shouldn't collapse into the same generic template.
+    assert len({question, hedge, short, statement}) == 4
+
+
+def test_stub_reply_ignores_case_and_truncates_long_messages():
+    reply = explore._stub_reply("MAYBE " + "this part matters a lot " * 5)
+    assert reply.startswith('You hedged on "')
+    assert "..." in reply
 
 
 # --- /explore/start and /explore/message endpoints ---------------------------------

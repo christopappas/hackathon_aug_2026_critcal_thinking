@@ -13,12 +13,14 @@ interface Props {
   onClose: () => void;
 }
 
-const WIDTH = 340;
+export const POPOVER_WIDTH = 340;
 const MAX_HEIGHT = 420;
 
 function clampedStyle(position: { x: number; y: number }): React.CSSProperties {
-  const left = Math.min(Math.max(12, position.x), window.innerWidth - WIDTH - 12);
-  const top = Math.min(Math.max(12, position.y), window.innerHeight - 160 - 12);
+  // Clamp against MAX_HEIGHT, not the current (often shorter) content height, so
+  // the box never grows past the viewport bottom as messages are added after it opens.
+  const left = Math.min(Math.max(12, position.x), window.innerWidth - POPOVER_WIDTH - 12);
+  const top = Math.min(Math.max(12, position.y), window.innerHeight - MAX_HEIGHT - 12);
   return { left, top };
 }
 
@@ -50,7 +52,10 @@ export function ExplorePopover({
   }
 
   return (
-    <div className="explore-popover" style={{ width: WIDTH, maxHeight: MAX_HEIGHT, ...clampedStyle(position) }}>
+    <div
+      className="explore-popover"
+      style={{ width: POPOVER_WIDTH, maxHeight: MAX_HEIGHT, ...clampedStyle(position) }}
+    >
       <header className="explore-header">
         <div>
           <div className="explore-eyebrow">Let's talk about this</div>
