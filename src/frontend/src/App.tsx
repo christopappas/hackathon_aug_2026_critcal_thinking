@@ -19,6 +19,7 @@ import { LlmModeToggle } from "./components/LlmModeToggle";
 import { MascotFlight } from "./components/MascotFlight";
 import { ReportCard } from "./components/ReportCard";
 import { TitleScreen } from "./components/TitleScreen";
+import { setDyslexiaMotion } from "./motion";
 import { loadSkin, saveSkin } from "./sockSkin";
 import type { SockSkin } from "./sockSkin";
 import type {
@@ -52,13 +53,18 @@ function loadLlmMode(): LlmMode {
 }
 
 function loadProfile(): AccessProfile {
+  let profile: AccessProfile = { dyslexia_support: false };
   try {
     const stored = localStorage.getItem(PROFILE_KEY);
-    if (stored) return JSON.parse(stored) as AccessProfile;
+    if (stored) profile = JSON.parse(stored) as AccessProfile;
   } catch {
     // Ignore unreadable storage; the default profile is a safe fallback.
   }
-  return { dyslexia_support: false };
+  // Applied here rather than only in the profile effect: a student who set this
+  // last session must not see the title screen animate before React's first
+  // effect runs. The effect below keeps it in sync after any later toggle.
+  setDyslexiaMotion(profile.dyslexia_support);
+  return profile;
 }
 
 interface ExplorePopupState {
@@ -159,6 +165,9 @@ export default function App() {
   // completion, report -- adapts without each component knowing about the profile.
   useEffect(() => {
     document.documentElement.dataset.access = profile.dyslexia_support ? "dyslexia" : "";
+    // Typography and motion are separate concerns with separate triggers, so the
+    // accommodation drives the shared motion attribute rather than its own rules.
+    setDyslexiaMotion(profile.dyslexia_support);
     try {
       localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
     } catch {

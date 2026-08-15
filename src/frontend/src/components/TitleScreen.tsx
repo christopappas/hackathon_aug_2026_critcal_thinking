@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { motionIsReduced } from "../motion";
 import { SOCK_SKINS } from "../sockSkin";
 import type { SockSkin } from "../sockSkin";
 import { useCursorEyes } from "../useCursorEyes";
@@ -29,17 +30,13 @@ const POKE_WINDOW_MS = 1200;
 const RIFFLE_STEP_MS = 110;
 const POKES_FOR_RIFFLE = 5;
 
-function prefersReducedMotion() {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
 /** Big, but never wider than the viewport it has to skid across. */
 function mascotSizeFor(width: number, height: number) {
   return Math.round(Math.max(150, Math.min(420, width * 0.42, height * 0.46)));
 }
 
 export function TitleScreen({ skin, onBegin, onSkinChange, leaving }: Props) {
-  const reduceMotion = prefersReducedMotion();
+  const reduceMotion = motionIsReduced();
 
   // Seeded from the media query: with motion reduced there is no animation, so
   // `animationend` never fires and a `false` seed would hang the entrance forever.

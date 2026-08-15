@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { motionIsReduced } from "../motion";
 import type { SockSkin } from "../sockSkin";
 import type { Anchor, Message } from "../types";
 import { useSockratesMood } from "../useSockratesMood";
@@ -54,9 +55,8 @@ export function ChatPanel({
   const mood = useSockratesMood(messages, busy, hintBusy, hints.length, draft);
 
   useEffect(() => {
-    // Smooth scrolling is driven by JS, so no media query reaches it.
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    endRef.current?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+    // Smooth scrolling is driven by JS, so no stylesheet reaches it.
+    endRef.current?.scrollIntoView({ behavior: motionIsReduced() ? "auto" : "smooth" });
   }, [messages.length, busy]);
 
   function submit(event: React.FormEvent) {
