@@ -189,6 +189,13 @@ Preserve these when changing things — each exists for a stated reason:
   `transform` attribute, which teleports a jaw to the origin on frame one.
 - **Every mood has a static pose** under `prefers-reduced-motion`, because motion is the
   mascot's only state channel. A blanket `animation: none` would mute it.
+- **Every title-screen keyframe ends at the element's base style** (`.title-*` in
+  `styles.css`). That is what makes click-to-skip and the reduced-motion block one-liners
+  each: removing the animation *is* jumping to its end state. Adding `forwards` — or using
+  `animation-delay` on anything that does not also *start* at base — breaks both, and only
+  under skip or reduced motion, so it will not show up in a demo.
+- **The title card is dismissed by a button, never a timer**, so killing its motion can never
+  strand anyone watching a countdown.
 
 ## Adding content
 
