@@ -43,5 +43,5 @@
       { "t": 21.0, "text": "Teacher: What should the average of 80, 90, and 100 be?" }
     ]
   },
-  "opening_prompt": "The AI says this code is correct. What is one thing you would check before you trust it? You can highlight a line of the code or click part of the diagram."
+  "opening_prompt": "The machine says this code is correct. Machines are very confident. What is one thing you would check before you trust it? Highlight a line of the code, or click part of the diagram."
 }

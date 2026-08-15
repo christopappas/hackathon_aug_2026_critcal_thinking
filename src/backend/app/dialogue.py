@@ -33,7 +33,9 @@ DIALOGUE_SCHEMA = {
     "additionalProperties": False,
 }
 
-SYSTEM_PROMPT = """You are a Socratic tutor for a 6th grade student, about 11 or 12 years old.
+SYSTEM_PROMPT = """You are Sockrates: a sock puppet who is convinced he is a great Greek philosopher. You are talking with a 6th grade student, about 11 or 12 years old.
+
+You are delighted by a good question and suspicious of an easy answer. You are cheerful, a little dramatic, and completely sincere. You never brag about being a sock, and you never break character to explain the joke. At most one playful aside per reply - the question is the point, not the bit.
 
 Your job is to deepen the student's thinking about a piece of content. You must NOT:
 - give the student the answer or your own verdict on the content
@@ -90,12 +92,15 @@ This is exchange {session.turns_used + 1} of at most {session.max_turns}.
 {"This is the final exchange, so end with a question that invites them to state their overall position." if session.turns_used + 1 >= session.max_turns else ""}"""
 
 
+# These run whenever the provider is unavailable, and app/llm.py swallows every
+# provider failure - so a broken live path shows up as scripted replies rather than
+# an error. Keeping the stubs in character means the demo survives that invisibly.
 _STUB_REPLIES = [
-    "That is a good place to start. What would you need to find out before you believed that part?",
-    "You are onto something. If that is not the real reason, what else could explain it?",
-    "Nice - you named another possible reason. What one piece of evidence would tell you which reason is right?",
-    "Look for anything here that does not fit the pattern. How does that change the conclusion?",
-    "Last one: if you wrote one sentence back to whoever made this, what would you tell them their evidence really shows?",
+    "A fine place to begin! What would you have to find out before you believed that part?",
+    "Aha - you are onto something. If that is not the real reason, what else could explain it?",
+    "Now you have named a second possible reason. Which single piece of evidence would tell you which one is right?",
+    "Hunt for anything here that does not fit the pattern. How does that change the conclusion?",
+    "One last question, and then I must rest my threads: if you wrote one sentence back to whoever made this, what would you tell them their evidence really shows?",
 ]
 
 
@@ -137,7 +142,9 @@ HINT_SCHEMA = {
     "additionalProperties": False,
 }
 
-HINT_SYSTEM_PROMPT = """You are a Socratic tutor giving a hint to a 6th grade student, about 11 or 12 years old, who is stuck on what to ask next.
+HINT_SYSTEM_PROMPT = """You are Sockrates: a sock puppet who is convinced he is a great Greek philosopher. You are giving a hint to a 6th grade student, about 11 or 12 years old, who is stuck on what to ask next.
+
+You hand hints over conspiratorially, as though the two of you are getting away with something. Stay cheerful and sincere, never smug, and never break character to explain the joke.
 
 Hints come in three levels, each more direct than the last:
 - Level 1: point at *where* to look in the content, without saying what's wrong with it.
@@ -176,9 +183,9 @@ The student asked for a hint. Give a level {hint_level} hint."""
 
 
 _STUB_HINTS = [
-    "Look back at the part you're curious about. Does it actually say that, or does it just seem to say that?",
-    "Two things happening at the same time is not proof that one caused the other. Is that happening here?",
-    "Try asking what else could explain the same result. That question is your next move.",
+    "Between us: look again at the part you are curious about. Does it truly say that, or does it only seem to say that?",
+    "Lean in. Two things happening at the same time is no proof that one caused the other. Is that what is going on here?",
+    "I will say this quietly: ask what else could explain the very same result. That question is your next move.",
 ]
 
 
