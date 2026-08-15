@@ -714,6 +714,32 @@ button:disabled {
   line-height: 1.6;
 }
 
+.export-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.export-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 9px 18px;
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 14px;
+  background: var(--card);
+  transition: border-color 0.14s ease, background 0.14s ease;
+}
+
+.export-link:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
 .restart {
   display: block;
   margin: 0 auto;

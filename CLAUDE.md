@@ -196,6 +196,10 @@ Preserve these when changing things — each exists for a stated reason:
   under skip or reduced motion, so it will not show up in a demo.
 - **The title card is dismissed by a button, never a timer**, so killing its motion can never
   strand anyone watching a countdown.
+- **Exports (`app/export.py`) mirror `ReportCard.tsx` section-for-section**, not a redesigned
+  summary. Any student- or model-supplied string reaching `reportlab`'s `Paragraph` must go
+  through `xml.sax.saxutils.escape` first - evidence quotes are verbatim student text, and an
+  unescaped `<` or `&` mis-renders or breaks the PDF. `openpyxl` cells need no such escaping.
 
 ## Adding content
 

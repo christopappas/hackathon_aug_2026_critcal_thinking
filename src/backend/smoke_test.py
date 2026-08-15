@@ -9,10 +9,13 @@ Run the server first, then: python smoke_test.py
 
 from __future__ import annotations
 
+import io
 import json
 import sys
 import urllib.error
 import urllib.request
+
+import openpyxl
 
 BASE = "http://127.0.0.1:8000"
 
@@ -28,6 +31,17 @@ def call(method: str, path: str, payload: dict | None = None) -> dict:
     except urllib.error.HTTPError as exc:
         print(f"HTTP {exc.code} on {method} {path}: {exc.read().decode()}")
         raise
+
+
+def call_binary(path: str):
+    """Like call(), but for endpoints that return a file instead of JSON.
+
+    Returns (body_bytes, headers) - headers is an email.message.Message, whose
+    .get() is case-insensitive, unlike a plain dict built from it.
+    """
+    req = urllib.request.Request(f"{BASE}{path}", method="GET")
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        return resp.read(), resp.headers
 
 
 MESSAGES = [
@@ -216,6 +230,20 @@ def main() -> int:
 
     assert len(report["dimensions"]) == len(rubric["dimensions"]), "missing rubric dimensions"
     assert all(d["evidence_quote"] for d in report["dimensions"]), "a dimension lacks evidence"
+
+    # Export: same report, as a file. Kept to stdlib + openpyxl (already a runtime
+    # dependency for the server itself) rather than pulling in a PDF-reading library
+    # here too - the exact rendered content is covered by pytest's test_export.py.
+    pdf_bytes, pdf_headers = call_binary(f"/report/{sid}/pdf")
+    assert pdf_bytes.startswith(b"%PDF"), "not a PDF"
+    assert pdf_headers.get("Content-Type") == "application/pdf"
+    print(f"\nexport: PDF -> {len(pdf_bytes)} bytes, {pdf_headers.get('Content-Disposition')}")
+
+    xlsx_bytes, xlsx_headers = call_binary(f"/report/{sid}/xlsx")
+    assert xlsx_bytes.startswith(b"PK"), "not a zip/xlsx"
+    wb = openpyxl.load_workbook(io.BytesIO(xlsx_bytes))
+    assert wb.sheetnames == ["Summary", "Dimensions"]
+    print(f"export: XLSX -> {len(xlsx_bytes)} bytes, {xlsx_headers.get('Content-Disposition')}")
 
     # Turn guard must reject extra messages after completion.
     try:

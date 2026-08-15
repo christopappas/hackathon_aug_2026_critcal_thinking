@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from . import config, dialogue, evaluator, explore, llm, store, teacher
+from . import config, dialogue, evaluator, explore, export, llm, store, teacher
 from .anchors import resolve_anchor
 from .models import (
     ChatRequest,
@@ -236,12 +236,40 @@ def explore_message(request: ExploreMessageRequest) -> ExploreMessageResponse:
     )
 
 
-@app.get("/report/{session_id}", response_model=Report)
-def get_report(session_id: str) -> Report:
+def _completed_session(session_id: str) -> Session:
     session = _load_session(session_id)
     if session.report is None:
         raise HTTPException(status_code=409, detail="conversation not complete yet")
-    return session.report
+    return session
+
+
+@app.get("/report/{session_id}", response_model=Report)
+def get_report(session_id: str) -> Report:
+    return _completed_session(session_id).report
+
+
+@app.get("/report/{session_id}/pdf")
+def get_report_pdf(session_id: str) -> Response:
+    session = _completed_session(session_id)
+    content = config.load_content(session.content_id)
+    pdf_bytes = export.render_pdf(session.report, content["title"])
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="sockrates-report-{session_id}.pdf"'},
+    )
+
+
+@app.get("/report/{session_id}/xlsx")
+def get_report_xlsx(session_id: str) -> Response:
+    session = _completed_session(session_id)
+    content = config.load_content(session.content_id)
+    xlsx_bytes = export.render_xlsx(session.report, content["title"])
+    return Response(
+        content=xlsx_bytes,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="sockrates-report-{session_id}.xlsx"'},
+    )
 
 
 @app.put("/session/{session_id}/llm-mode", response_model=LlmModeResponse)
