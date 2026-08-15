@@ -10,6 +10,9 @@
   --green-hover: #0c7f57;
   --line: #e3e8f0;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  /* Loaded in index.html. Falls back to the body stack if the request is blocked
+     (offline, restrictive CSP) rather than failing to render at all. */
+  --display-font: "Baloo 2", "Segoe UI", system-ui, sans-serif;
   color: var(--ink);
 }
 
@@ -758,6 +761,8 @@ button:disabled {
 .picker-head h1 {
   margin: 0 0 10px;
   font-size: 34px;
+  font-family: var(--display-font);
+  font-weight: 800;
 }
 
 .picker-head p {
@@ -1814,6 +1819,8 @@ button.danger {
   justify-self: center;
   margin: 0;
   color: #fff;
+  font-family: var(--display-font);
+  font-weight: 800;
   font-size: clamp(2.6rem, 13vw, 8rem);
   letter-spacing: -0.02em;
   line-height: 1;
