@@ -1657,6 +1657,232 @@ button.danger {
   }
 }
 
+.teacher-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+/* A link that switches phase rather than navigating: the portal has no router. */
+.nav-link {
+  background: none;
+  border: none;
+  padding: 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+}
+
+.nav-link.current {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+
+/* ---------------------------------------------------------------- */
+/* Completions dashboard                                             */
+/* ---------------------------------------------------------------- */
+
+.completions-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.completions-head h1 {
+  margin: 0 0 4px;
+  font-size: 22px;
+}
+
+.completions-head .hint {
+  margin: 0 0 12px;
+}
+
+.notice.warn-notice {
+  background: #fff8e6;
+  border: 1px solid #f2dfae;
+  color: #7a5c12;
+  max-width: 52ch;
+}
+
+/* Three absolutely positioned layers in one box. They paint in DOM order, which is
+   what puts socks behind the mascot, the mascot behind the drawer front, and his
+   sock leg out of sight below it. */
+.sock-drawer-scene {
+  position: relative;
+  flex: none;
+}
+
+.sock-drawer-scene .drawer-layer,
+.sock-drawer-scene .drawer-mascot {
+  position: absolute;
+}
+
+.sock-drawer-scene .drawer-layer {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.completions-stats {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0 12px;
+}
+
+.completions-stats div {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: grid;
+  gap: 2px;
+}
+
+.completions-stats strong {
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.completions-stats span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* The table is the one thing here that cannot reflow: at some width the columns
+   have to scroll instead of wrapping into unreadable stacks. */
+.completions-scroll {
+  overflow-x: auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.completions-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 620px;
+}
+
+.completions-table th,
+.completions-table td {
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.completions-table thead th {
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+}
+
+.completions-table tbody tr:last-child th,
+.completions-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.completions-table tbody tr:hover {
+  background: var(--accent-soft);
+}
+
+.completions-table tbody th {
+  font-weight: 600;
+}
+
+.completions-table .numeric {
+  text-align: right;
+}
+
+.completions-table .sort {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+}
+
+.completions-table .turns,
+.completions-table .bloom-tag {
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+/* Not `.bloom` or `.pip`: the report card already owns both, and reusing either
+   name here restyled it from across the file. */
+.completions-table .bloom-tag {
+  display: block;
+  margin-top: 2px;
+}
+
+.rubric-pips {
+  display: inline-flex;
+  gap: 3px;
+}
+
+/* Four steps of one hue rather than four colours: a pip is a level, not a
+   category, and red-to-green would read as pass/fail on a 1-4 developmental scale. */
+.rubric-pip {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+.rubric-pip-1 { opacity: 0.2; }
+.rubric-pip-2 { opacity: 0.45; }
+.rubric-pip-3 { opacity: 0.7; }
+.rubric-pip-4 { opacity: 1; }
+
+.score-pill {
+  display: inline-block;
+  min-width: 26px;
+  text-align: center;
+  border-radius: 8px;
+  padding: 2px 6px;
+  font-weight: 700;
+}
+
+.score-pill.high {
+  background: #e9f9f2;
+  color: #0a8a68;
+}
+
+.score-pill.mid {
+  background: var(--accent-soft);
+  color: #1c50b3;
+}
+
+.score-pill.low {
+  background: #fdeeee;
+  color: #c0392b;
+}
+
+@media (max-width: 700px) {
+  .completions-head {
+    flex-direction: column-reverse;
+    align-items: center;
+  }
+  .completions-stats {
+    flex-wrap: wrap;
+  }
+  /* Three links plus the title do not fit on one line; wrapping to two beats
+     breaking "Open the student view" across four. */
+  .teacher-nav {
+    flex-wrap: wrap;
+  }
+  .teacher-nav a {
+    white-space: nowrap;
+  }
+}
+
 .picker-card.dashed {
   border-style: dashed;
   background: transparent;

@@ -98,6 +98,33 @@ export interface TeacherContentRow {
   source: { topic?: string; generated_with_llm?: boolean; created_at?: string };
 }
 
+export interface CompletionDimension {
+  dimension: string;
+  name: string;
+  score: number;
+}
+
+export interface StudentCompletion {
+  id: string;
+  student_name: string;
+  content_id: string;
+  content_title: string;
+  completed_at: string;
+  turns_used: number;
+  hints_used: number;
+  overall_score: number;
+  bloom_level_reached: string;
+  dimensions: CompletionDimension[];
+}
+
+export interface CompletionsResponse {
+  rows: StudentCompletion[];
+  student_count: number;
+  average_score: number;
+  /** True while the rows are invented. Drives the badge on the completions page. */
+  mock: boolean;
+}
+
 export interface AccessProfile {
   dyslexia_support: boolean;
 }

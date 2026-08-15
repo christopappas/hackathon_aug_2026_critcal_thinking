@@ -2,6 +2,7 @@ import type {
   AccessProfile,
   Anchor,
   ChatResponse,
+  CompletionsResponse,
   ContentSummary,
   ExploreMessageResponse,
   ExploreStartResponse,
@@ -102,6 +103,8 @@ export const importContent = (payload: unknown) =>
 export const fetchImportSchema = () => request<{ shape: string }>("/teacher/import/schema");
 
 export const listTeacherContent = () => request<TeacherContentRow[]>("/teacher/content");
+
+export const listCompletions = () => request<CompletionsResponse>("/teacher/completions");
 
 export const getTeacherContent = (id: string) =>
   request<GeneratedContent>(`/teacher/content/${id}`);

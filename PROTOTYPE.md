@@ -105,6 +105,7 @@ clicking the outlier cluster resolves to the outliers, not the trend line beneat
 | `POST` | `/explore/message` | Continue the active explore thread (capped at 30 messages as an anti-abuse ceiling, not a turn limit) |
 | `GET` | `/report/{id}` | Report card |
 | `GET` | `/rubric` | The rubric, for UI display |
+| `GET` | `/teacher/completions` | Who finished what and how they scored — **mock rows**, see below |
 | `GET` | `/health` | Status + whether the LLM is live |
 
 Interactive docs at <http://localhost:8000/docs>.
@@ -145,6 +146,29 @@ the global default (`MIN_TURNS`/`MAX_TURNS`, 3-5) — a quick single-flaw piece 
 fewer turns, a layered one more. See `study-music.json` (2-4) for a worked example. Validated
 at session-creation time: `min_turns` must be at least 1, `max_turns` can't be below
 `min_turns`, and there's a ceiling of 10 so a typo can't create a marathon session.
+
+## The completions dashboard
+
+<http://localhost:5173/teacher> → **Completions**. A table of finished dialogues: student,
+piece, when, turns taken, hints used, the five rubric dimensions as pips, and the 1–10 report
+card score with the Bloom level it reached. Sortable by any column.
+
+**The rows are mock and the page says so.** Sessions are in-memory and carry no student
+identity, so there is no completion history to read and no roster to read it against;
+`app/completions.py` invents both, and nothing in it touches a real session. Every name is
+fictional. The response carries `mock: true`, which is what puts the demo-data banner on the
+page rather than leaving it to whoever looks at the screenshot.
+
+Two properties make it safe to demo:
+
+- **Stable.** Each row's numbers are seeded from its own identity, so a refresh, a restart, or
+  a second laptop shows the same class. Only the dates move, and only by the day.
+- **Consistent with real scoring.** Dimension scores are folded into the overall and the Bloom
+  level by `evaluator.overall_score` / `evaluator.bloom_level` — the same functions a real
+  report card uses — so the mock cannot drift into numbers the scorer could not produce.
+
+Making it real means persisting sessions with a student identity and building the same
+`StudentCompletion` rows from `Session.report`. The table does not change.
 
 ## Notes on the design
 

@@ -250,6 +250,42 @@ class ImportRequest(BaseModel):
     payload: dict
 
 
+class CompletionDimension(BaseModel):
+    """One rubric dimension's score on a finished session, without the prose."""
+
+    dimension: str
+    name: str
+    score: int = Field(ge=1, le=4)
+
+
+class StudentCompletion(BaseModel):
+    """One finished dialogue as the teacher dashboard lists it.
+
+    Every field mirrors something a real Report already carries, so the table
+    keeps working when the rows stop being invented -- see completions.py.
+    """
+
+    id: str
+    student_name: str
+    content_id: str
+    content_title: str
+    completed_at: str
+    turns_used: int
+    hints_used: int
+    overall_score: int = Field(ge=1, le=10)
+    bloom_level_reached: str
+    dimensions: list[CompletionDimension]
+
+
+class CompletionsResponse(BaseModel):
+    rows: list[StudentCompletion]
+    student_count: int
+    average_score: float
+    mock: bool = True
+    """False would mean these are real completions. Nothing sets it false yet, and the
+    dashboard reads it to decide whether to badge the page as demo data."""
+
+
 class ContentPatch(BaseModel):
     """Fields a teacher may edit after generation. Chart geometry is not among them."""
 
