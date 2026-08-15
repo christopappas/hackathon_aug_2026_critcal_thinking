@@ -83,3 +83,10 @@ export interface Message {
   text: string;
   anchorExcerpt?: string | null;
 }
+
+export interface HintResponse {
+  hint: string;
+  hint_level: number;
+  hints_used_this_turn: number;
+  max_hints_per_turn: number;
+}

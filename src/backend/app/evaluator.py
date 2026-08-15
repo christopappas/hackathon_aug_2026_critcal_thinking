@@ -53,7 +53,10 @@ Rules:
 - Judge the thinking, not the spelling, grammar, or typing. A 6th grader writes casually.
 - Feedback is addressed directly to the student as "you", is specific, and names what to do differently.
 - Write feedback and the explanation in short sentences with everyday words a 6th grader knows.
-- The explanation must describe how the student's thinking moved across the conversation."""
+- The explanation must describe how the student's thinking moved across the conversation.
+- A turn marked [hints used: N] means the tutor nudged the student toward that message. Weigh
+  that turn's evidence as less independent — do not award a 4 on Question Quality or Evidence
+  and Reasoning for a turn that leaned on hints."""
 
 
 def _rubric_block() -> str:
@@ -71,7 +74,8 @@ def _transcript_block(session: Session) -> str:
     lines = []
     for exchange in session.exchanges:
         anchor = f" [anchored to {exchange.anchor_excerpt}]" if exchange.anchor_excerpt else ""
-        lines.append(f"Student (turn {exchange.index}){anchor}: {exchange.student_message}")
+        hints = f" [hints used: {exchange.hints_used}]" if exchange.hints_used else ""
+        lines.append(f"Student (turn {exchange.index}){anchor}{hints}: {exchange.student_message}")
         lines.append(f"Tutor: {exchange.llm_response}")
     return "\n".join(lines)
 
@@ -161,6 +165,31 @@ def evaluate(session: Session, content: dict) -> tuple[dict, bool]:
         return _heuristic_scores(session), False
 
 
+_HINT_DOCKED_DIMENSIONS = {"question_quality", "evidence_reasoning"}
+
+
+def _apply_hint_penalty(dimensions: list[DimensionScore], session: Session) -> None:
+    """Dock the dimensions a hint most directly assists, in place.
+
+    This runs after LLM or heuristic scoring, as a deterministic floor: the
+    prompt already asks the model to weigh hint use, but a hackathon demo
+    needs the "more hints, less credit" rule to hold even if the model
+    ignores it or the heuristic fallback is in play.
+    """
+    total_hints = sum(exchange.hints_used for exchange in session.exchanges)
+    penalty = min(2, total_hints // 2)
+    if penalty == 0:
+        return
+    for dimension in dimensions:
+        if dimension.dimension not in _HINT_DOCKED_DIMENSIONS:
+            continue
+        docked = max(1, dimension.score - penalty)
+        if docked == dimension.score:
+            continue
+        dimension.score = docked
+        dimension.feedback = f"{dimension.feedback} Score reflects hint use this session."
+
+
 def build_report(session: Session, content: dict) -> Report:
     """Evaluate the transcript, then assemble the student-facing report card."""
     payload, used_llm = evaluate(session, content)
@@ -177,6 +206,7 @@ def build_report(session: Session, content: dict) -> Report:
         )
         for item in payload["dimensions"]
     ]
+    _apply_hint_penalty(dimensions, session)
 
     # Five dimensions scored 1-4 gives 5-20; present it on a friendlier 1-10 scale.
     raw_total = sum(d.score for d in dimensions)

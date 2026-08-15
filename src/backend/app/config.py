@@ -15,6 +15,7 @@ STATIC_DIR = Path(__file__).parent / "static"
 
 MIN_TURNS = int(os.getenv("MIN_TURNS", "3"))
 MAX_TURNS = int(os.getenv("MAX_TURNS", "5"))
+MAX_HINTS_PER_TURN = int(os.getenv("MAX_HINTS_PER_TURN", "3"))
 
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://models.inference.ai.azure.com")

@@ -123,3 +123,81 @@ def generate_followup(
         return payload, True
     except LLMUnavailable:
         return _stub_response(session), False
+
+
+HINT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "hint": {
+            "type": "string",
+            "description": "A short hint toward the student's next question, matched to the requested level.",
+        },
+    },
+    "required": ["hint"],
+    "additionalProperties": False,
+}
+
+HINT_SYSTEM_PROMPT = """You are a Socratic tutor giving a hint to a 6th grade student, about 11 or 12 years old, who is stuck on what to ask next.
+
+Hints come in three levels, each more direct than the last:
+- Level 1: point at *where* to look in the content, without saying what's wrong with it.
+- Level 2: name the *kind* of thinking move to try (e.g. checking whether two things happening together really means one caused the other), without applying it to this content yet.
+- Level 3: get close to naming the actual issue in this content, but still leave the final step to the student.
+
+You MUST NOT, at any level:
+- write a question the student could copy word-for-word as their own message
+- give the student the answer or your own verdict on the content
+- say "critical thinking," mention a rubric, or say anything about scoring
+- write more than 2 sentences
+
+Write for a 6th grader: short sentences, everyday words, no jargon."""
+
+
+def build_hint_prompt(
+    session: Session, content: dict, anchor_excerpt: str | None, hint_level: int
+) -> str:
+    anchor_line = (
+        f"The student anchored their attention to {anchor_excerpt}."
+        if anchor_excerpt
+        else "The student has not anchored their attention to a specific part."
+    )
+    return f"""CONTENT THE STUDENT IS EXAMINING
+Title: {content['title']}
+Reading level: grade {content.get('grade_level', 6)}
+Text: {content['body']}
+Chart: {content['chart']['alt']}
+
+CONVERSATION SO FAR
+{_history_block(session)}
+
+{anchor_line}
+
+The student asked for a hint. Give a level {hint_level} hint."""
+
+
+_STUB_HINTS = [
+    "Look back at the part you're curious about. Does it actually say that, or does it just seem to say that?",
+    "Two things happening at the same time is not proof that one caused the other. Is that happening here?",
+    "Try asking what else could explain the same result. That question is your next move.",
+]
+
+
+def _stub_hint(hint_level: int) -> str:
+    return _STUB_HINTS[min(hint_level - 1, len(_STUB_HINTS) - 1)]
+
+
+def generate_hint(
+    session: Session, content: dict, anchor_excerpt: str | None, hint_level: int
+) -> tuple[str, bool]:
+    """Return the hint text and whether a real LLM produced it."""
+    try:
+        payload = complete_json(
+            HINT_SYSTEM_PROMPT,
+            build_hint_prompt(session, content, anchor_excerpt, hint_level),
+            "socratic_hint",
+            HINT_SCHEMA,
+            temperature=0.6,
+        )
+        return payload["hint"], True
+    except LLMUnavailable:
+        return _stub_hint(hint_level), False

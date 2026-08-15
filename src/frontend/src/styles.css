@@ -272,6 +272,21 @@ button:disabled {
   font-style: italic;
 }
 
+.bubble.hint-bubble {
+  background: #fff3cd;
+  align-self: flex-start;
+  border: 1px dashed #e0b73a;
+}
+
+.hint-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #96731a;
+  margin-bottom: 4px;
+}
+
 .bubble.thinking {
   display: flex;
   gap: 4px;
@@ -345,6 +360,32 @@ button:disabled {
   border-radius: 10px;
   padding: 0 20px;
   font-weight: 600;
+}
+
+.hint-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.hint-button {
+  background: none;
+  border: 1px solid #e0b73a;
+  color: #96731a;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hint-button:hover:enabled {
+  background: #fff3cd;
+}
+
+.hint-cost {
+  font-size: 11px;
+  color: var(--muted);
 }
 
 /* Completion */

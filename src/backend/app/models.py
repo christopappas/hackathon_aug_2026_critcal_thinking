@@ -35,6 +35,7 @@ class Exchange(BaseModel):
     llm_response: str
     anchor: Anchor | None = None
     anchor_excerpt: str | None = None
+    hints_used: int = 0
 
 
 class DimensionScore(BaseModel):
@@ -64,6 +65,8 @@ class Session(BaseModel):
     status: Literal["active", "may_conclude", "complete"] = "active"
     exchanges: list[Exchange] = Field(default_factory=list)
     report: Report | None = None
+    pending_hints: int = 0
+    """Hints requested for the in-progress turn; folded into the next Exchange, then reset."""
 
     @property
     def turns_remaining(self) -> int:
@@ -108,3 +111,15 @@ class ChatResponse(BaseModel):
     status: str
     is_complete: bool
     anchor_excerpt: str | None = None
+
+
+class HintRequest(BaseModel):
+    session_id: str
+    anchor: Anchor | None = None
+
+
+class HintResponse(BaseModel):
+    hint: str
+    hint_level: int
+    hints_used_this_turn: int
+    max_hints_per_turn: int

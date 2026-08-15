@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { fetchReport, listContent, sendMessage, startSession } from "./api";
+import { fetchReport, listContent, requestHint, sendMessage, startSession } from "./api";
 import { ChatPanel } from "./components/ChatPanel";
 import { CompletionScreen } from "./components/CompletionScreen";
 import { ContentPicker } from "./components/ContentPicker";
@@ -19,6 +19,9 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [report, setReport] = useState<Report | null>(null);
   const [error, setError] = useState<string>("");
+  const [hints, setHints] = useState<string[]>([]);
+  const [maxHintsPerTurn, setMaxHintsPerTurn] = useState(3);
+  const [hintBusy, setHintBusy] = useState(false);
 
   const loadCatalog = useCallback(async () => {
     setPhase("loading");
@@ -27,6 +30,7 @@ export default function App() {
     setAnchor(null);
     setTurnsUsed(0);
     setReport(null);
+    setHints([]);
     try {
       setCatalog(await listContent());
       setPhase("picking");
@@ -47,6 +51,7 @@ export default function App() {
       setMessages([]);
       setAnchor(null);
       setTurnsUsed(0);
+      setHints([]);
       setPhase("chatting");
     } catch (err) {
       setError(String(err));
@@ -68,6 +73,7 @@ export default function App() {
         { role: "tutor", text: response.reply },
       ]);
       setTurnsUsed(response.turns_used);
+      setHints([]);
       if (response.is_complete) {
         const card = await fetchReport(session.session_id);
         setReport(card);
@@ -78,6 +84,21 @@ export default function App() {
       setPhase("error");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function handleHint() {
+    if (!session || hintBusy || busy) return;
+    setHintBusy(true);
+    try {
+      const response = await requestHint(session.session_id, anchor);
+      setHints((prev) => [...prev, response.hint]);
+      setMaxHintsPerTurn(response.max_hints_per_turn);
+    } catch (err) {
+      setError(String(err));
+      setPhase("error");
+    } finally {
+      setHintBusy(false);
     }
   }
 
@@ -118,6 +139,10 @@ export default function App() {
         maxTurns={session.max_turns}
         busy={busy}
         disabled={false}
+        hints={hints}
+        onHint={() => void handleHint()}
+        hintBusy={hintBusy}
+        maxHintsPerTurn={maxHintsPerTurn}
       />
     </div>
   );
