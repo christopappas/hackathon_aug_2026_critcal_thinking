@@ -40,6 +40,62 @@ export interface ContentSummary {
   subject: string;
   blurb: string;
   grade_level: number | null;
+  icon?: string | null;
+  generated?: boolean;
+}
+
+export interface Template {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  trap: string;
+  subject: string;
+  chart_kind: "bar" | "scatter";
+  generation_instructions: string;
+  builtin: boolean;
+}
+
+export interface GenerateRequest {
+  template_id: string;
+  topic: string;
+  extra_instructions?: string;
+  source_text?: string;
+  grade_level?: number;
+  generation_instructions?: string;
+}
+
+/** A generated piece carries the teacher-only fields the student payload never shows. */
+export interface GeneratedContent extends Content {
+  icon?: string;
+  review_status: "draft" | "published";
+  thinking_trap?: string;
+  source?: {
+    template_id?: string;
+    topic?: string;
+    generated_with_llm?: boolean;
+    created_at?: string;
+  };
+}
+
+export interface GenerateResponse {
+  content: GeneratedContent;
+  warnings: string[];
+  thinking_trap: string;
+  generated_with_llm: boolean;
+}
+
+export interface TeacherContentRow {
+  id: string;
+  title: string;
+  subject: string;
+  blurb: string;
+  icon: string | null;
+  grade_level: number | null;
+  generated: boolean;
+  review_status: "draft" | "published";
+  thinking_trap: string;
+  source: { topic?: string; generated_with_llm?: boolean; created_at?: string };
 }
 
 export interface AccessProfile {

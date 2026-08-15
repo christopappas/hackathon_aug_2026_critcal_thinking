@@ -1,4 +1,8 @@
-"""End-to-end smoke test: session -> anchored chat turns -> report card.
+"""End-to-end smoke test.
+
+Two flows:
+  student -- session -> anchored chat turns -> report card
+  teacher -- template -> generate -> preview -> publish -> student session -> delete
 
 Run the server first, then: python smoke_test.py
 """
@@ -48,6 +52,100 @@ MESSAGES = [
         None,
     ),
 ]
+
+
+def expect_status(method: str, path: str, payload: dict | None, want: int, label: str) -> None:
+    got = None
+    try:
+        call(method, path, payload)
+    except urllib.error.HTTPError as exc:
+        got = exc.code
+    assert got == want, f"{label}: expected {want}, got {got}"
+    print(f"  ok: {label} -> {want}")
+
+
+def teacher_flow() -> str | None:
+    """Generate a piece, prove its regions are clickable, publish it, then clean up.
+
+    Returns the generated content id if it is still on disk, so the caller can remove it
+    even when an assertion fails partway through -- otherwise a failed run leaves junk in
+    the library that slows every later run.
+    """
+    print("\n=== TEACHER FLOW ===")
+
+    templates = call("GET", "/teacher/templates")
+    assert templates, "expected at least one template"
+    print(f"templates ({len(templates)}): {[t['id'] for t in templates]}")
+
+    template = templates[0]
+    result = call(
+        "POST",
+        "/teacher/generate",
+        {"template_id": template["id"], "topic": "a new snack sold at the school store"},
+    )
+    content = result["content"]
+    cid = content["id"]
+    print(f"generated '{cid}' from {template['id']} | llm={result['generated_with_llm']}")
+    if result["warnings"]:
+        print(f"  warnings: {result['warnings']}")
+
+    assert content["review_status"] == "draft", "a fresh generation must start as a draft"
+    assert result["thinking_trap"], "the teacher needs the trap explained"
+    assert result["thinking_trap"] not in content["body"], "the trap leaked into student-facing text"
+
+    # The review gate: a draft exists but students cannot see it.
+    assert cid not in [c["id"] for c in call("GET", "/content")], "draft leaked into the catalog"
+    print("  ok: draft is hidden from the student catalog")
+
+    asset = content["chart"]["asset_url"]
+    with urllib.request.urlopen(f"{BASE}{asset}", timeout=20) as resp:
+        body = resp.read().decode()
+    assert resp.status == 200 and body.lstrip().startswith("<svg"), f"bad asset at {asset}"
+    print(f"  ok: chart rendered and served at {asset}")
+
+    # The assertion this whole design exists to satisfy. Every region derived by the
+    # renderer must resolve, through the real anchor path, back to its own caption. If a
+    # box drifts from the drawing, this is what catches it.
+    regions = content["chart"]["regions"]
+    assert regions, "generated content has no clickable regions"
+    session = call("POST", "/session", {"content_id": cid})
+    assert session["content"]["id"] == cid, "drafts must stay previewable as a student"
+    sid = session["session_id"]
+
+    # Cap by the server's own turn limit, not len(MESSAGES), so a lowered MAX_TURNS
+    # produces a shorter check rather than a spurious 409.
+    for region in regions[: session["max_turns"]]:
+        x, y, w, h = region["box"]
+        reply = call(
+            "POST",
+            "/chat",
+            {
+                "session_id": sid,
+                "message": "What does this part actually show?",
+                "anchor": {"kind": "region", "box": [x + w / 2, y + h / 2, 0, 0]},
+            },
+        )
+        excerpt = reply["anchor_excerpt"] or ""
+        assert region["caption"] in excerpt, (
+            f"region '{region['id']}' is not clickable: a click at its center resolved "
+            f"to {excerpt!r} instead of its caption"
+        )
+        print(f"  ok: clicking '{region['id']}' -> {excerpt}")
+
+    call("POST", f"/teacher/content/{cid}/publish")
+    assert cid in [c["id"] for c in call("GET", "/content")], "publish did not reach the catalog"
+    print("  ok: published and visible to students without a restart")
+
+    call("POST", f"/teacher/content/{cid}/unpublish")
+    assert cid not in [c["id"] for c in call("GET", "/content")], "unpublish did not take effect"
+    print("  ok: unpublish pulls it back out of the catalog")
+
+    # The built-in five are not the teacher's to break.
+    seed = next(c["id"] for c in call("GET", "/content") if c["id"] != cid)
+    expect_status("DELETE", f"/teacher/content/{seed}", None, 403, "delete a built-in piece")
+    expect_status("PUT", f"/teacher/content/{seed}", {"title": "x"}, 403, "edit a built-in piece")
+
+    return cid
 
 
 def main() -> int:
@@ -168,6 +266,20 @@ def main() -> int:
     report_after_explore = call("GET", f"/report/{sid}")
     assert report_after_explore == report, "explore thread must never change the graded report"
     print("  report card unchanged by the explore thread (unscored, as designed)")
+
+    # Teacher flow runs last: it adds to the content library, so keeping it after the
+    # checks that read the catalog means they see a stable list.
+    generated_id = None
+    try:
+        generated_id = teacher_flow()
+    finally:
+        # Always clean up, including after a failed assertion, so the test stays
+        # re-runnable and the library does not grow with every run.
+        if generated_id:
+            call("DELETE", f"/teacher/content/{generated_id}")
+            remaining = [c["id"] for c in call("GET", "/content")]
+            assert generated_id not in remaining, "delete left the piece in the catalog"
+            print(f"  ok: cleaned up '{generated_id}'")
 
     print("\nALL CHECKS PASSED")
     return 0

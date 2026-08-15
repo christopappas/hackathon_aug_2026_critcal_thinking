@@ -15,7 +15,12 @@ def _get_client():
     if _client is None:
         from openai import OpenAI
 
-        _client = OpenAI(base_url=config.LLM_BASE_URL, api_key=config.GITHUB_TOKEN)
+        # The SDK insists on a non-empty key even when the server ignores it, which is
+        # the case for local OpenAI-compatible servers.
+        _client = OpenAI(
+            base_url=config.LLM_BASE_URL,
+            api_key=config.LLM_API_KEY or "local-no-key-needed",
+        )
     return _client
 
 
@@ -37,7 +42,7 @@ def complete_json(
     conditions in ways that are hard to recover from.
     """
     if not config.llm_enabled():
-        raise LLMUnavailable("no GITHUB_TOKEN configured")
+        raise LLMUnavailable("no LLM configured: set GITHUB_TOKEN or point LLM_BASE_URL at a local server")
 
     try:
         response = _get_client().chat.completions.create(

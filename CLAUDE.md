@@ -15,6 +15,8 @@ see the design invariant on dialogue and scoring being separate calls.
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — system design, requirement IDs (I1–I5, S1–S9), key decisions
 - [PROTOTYPE.md](./PROTOTYPE.md) — how to run it, API surface, how anchoring works
+- [CONTENT_AUTHORING.md](./CONTENT_AUTHORING.md) — the payload shape and the import command, for
+  anyone adding a content piece by hand or with a model. Point teammates here.
 
 This is **not** a Drupal project. No lando, composer, drush, or phpcs applies here.
 
@@ -64,8 +66,10 @@ cd src/backend && .venv/bin/uvicorn app.main:app --reload --port 8000
 cd src/frontend && npm run dev
 ```
 
-Open <http://localhost:5173>. Vite proxies `/api` and `/static` to the backend, so there is
-no CORS setup to do. Interactive API docs at <http://localhost:8000/docs>.
+Open <http://localhost:5173> for the student view, or <http://localhost:5173/teacher> for the
+teacher portal — `main.tsx` branches on the path, so there is no router. Vite proxies `/api`
+and `/static` to the backend, so there is no CORS setup to do. Interactive API docs at
+<http://localhost:8000/docs>.
 
 Verify end-to-end — drives a full session through to the report card and asserts the turn
 guard rejects a 6th message with 409:
@@ -73,6 +77,13 @@ guard rejects a 6th message with 409:
 ```bash
 cd src/backend && .venv/bin/python smoke_test.py
 ```
+
+## CI
+
+`.github/workflows/ci.yml` runs on every push to `main` and every PR: `pytest` + `smoke_test.py`
+for the backend (Python 3.12, no token needed — tests force offline mode), `tsc -b && vite
+build` for the frontend. No deploy step yet — nothing is hosted anywhere, so there's no target
+to wire up. When one exists, add a `deploy` job gated on the existing checks passing.
 
 ## Setup traps
 
@@ -101,9 +112,31 @@ follow-ups and scoring falls back to a deterministic heuristic. The report card 
 with `generated_with_llm: false`. This keeps the demo alive if a token expires or the
 provider rate-limits mid-presentation.
 
-To enable the LLM, `cp .env.example .env` in `src/backend` and set `GITHUB_TOKEN` (no scopes
-needed — it is only used for [GitHub Models](https://github.com/marketplace/models)).
-Restart the backend; `GET /health` reports `llm_enabled`.
+To enable the LLM, `cp .env.example .env` in `src/backend` and either set `GITHUB_TOKEN` (no
+scopes needed — it is only used for [GitHub Models](https://github.com/marketplace/models)) or
+point `LLM_BASE_URL` at a local server. Restart the backend; `GET /health` reports
+`llm_enabled`.
+
+**No token, still want real generation?** Any OpenAI-compatible local server works, and none
+of them need a credential — `llm_enabled()` treats a non-default `LLM_BASE_URL` as enabled for
+exactly this reason:
+
+```bash
+ollama serve && ollama pull llama3.1
+# then in src/backend/.env:
+#   LLM_BASE_URL=http://localhost:11434/v1
+#   LLM_MODEL=llama3.1
+```
+
+Generation requests a strict JSON schema. Ollama 0.5+ and current LM Studio handle it; an older
+build fails the call and falls back to template prose, which looks like success unless you check
+`generated_with_llm` in the response.
+
+**What works with nothing configured at all:** charts always render — `charts.py` is pure Python
+and never calls a model — so a generated piece is fully valid and clickable either way. Only the
+*writing* changes. The offline path fills the template's `offline_draft` with an invented brand
+name and a fresh set of figures seeded from the teacher's topic, so two topics give two different
+pieces, and the same topic always gives the same one.
 
 **Caveat worth checking before a demo:** `requirements.txt` pins `openai>=1.109`, but that
 currently resolves to **openai 3.x**, a major version ahead of what this was written
@@ -126,6 +159,15 @@ Preserve these when changing things — each exists for a stated reason:
 - **Anchors normalize to a text excerpt** server-side (`app/anchors.py`), so prompts never
   branch on media type. Overlapping chart regions resolve to the *smallest* box containing
   the click.
+- **Generated charts must stay 600×400** (`app/charts.py`). `ContentViewer` normalizes a click
+  against the wrapper, and `.chart-wrap img` is `width: 100%; height: auto`, so normalized
+  click coordinates equal normalized viewBox coordinates *only while the aspect ratio matches
+  the seeds*. Change the viewBox and every generated chart's anchoring skews silently.
+  `charts.verify_house_style()` reproduces two authored SVGs from specs and is the check that
+  catches it — the smoke test's region round-trip is the other.
+- **Region boxes are derived, never authored.** `charts.render()` returns the drawing and the
+  regions from the same numbers in the same call, so a click target cannot drift from the
+  thing it points at. Nothing else may write a `regions` list.
 - **The rubric is data, not prompt text** (`app/data/rubric.json`), so the UI, evaluator, and
   report generator share one source of truth.
 - **Hints cost score, not turns.** Up to 3 per turn, tracked on the exchange and docked against
@@ -147,10 +189,46 @@ Preserve these when changing things — each exists for a stated reason:
 
 ## Adding content
 
-Drop a new JSON file into `src/backend/app/data/content/` and it appears in the picker on the
-next restart — no code change. Copy an existing file for the shape. Required keys: `id`,
-`title`, `body`, `chart` (with `regions`), `video.transcript`, and `opening_prompt`. Use
-`order` to place it in the picker and `grade_level` for the badge.
+Two ways in.
+
+**The teacher portal** at <http://localhost:5173/teacher> — pick a template, edit the topic and
+the prompt, generate, review the draft, publish. Generated pieces land in
+`src/backend/app/data/content/generated/` with their charts in `app/static/generated/`. Both
+directories are gitignored, so generated content never lands in the repo by accident.
+
+Generating writes a **draft**. `config.list_content()` filters drafts out of the student
+catalog, so nothing an LLM wrote can reach a student until a teacher publishes it — the review
+gate is structural, not a checkbox. `config.load_content()` still resolves drafts, which is
+what lets the portal preview one as a student with no separate code path.
+
+**By hand** — drop a JSON file into `src/backend/app/data/content/` and it appears in the
+picker on the next restart. Copy an existing file for the shape. Required keys: `id`, `title`,
+`body`, `chart` (with `regions`), `video.transcript`, and `opening_prompt`. Use `order` to
+place it in the picker, `grade_level` for the badge, and `icon` for the picker emoji.
+
+Anything written at runtime must call `config.reload_library()`; `load_library()` is
+`lru_cache`d, so a new file is invisible until the cache is dropped.
+
+## Generating content
+
+Three modules, each with one job:
+
+| Module | Responsibility |
+|---|---|
+| `app/generator.py` | The third LLM role. Prompt, strict JSON schema, offline fallback. |
+| `app/charts.py` | `chart_spec -> (svg, regions)`. All geometry. No LLM involvement. |
+| `app/validation.py` | `(errors, warnings)`. Errors block publishing; warnings are advice. |
+
+**The model writes prose and picks numbers. It never writes markup, ids, asset paths, or
+region boxes.** Those are assembled server-side, so a bad generation produces bad *writing*,
+never a broken chart or a click target pointing at nothing. It also means no model-authored
+markup is ever served to a browser.
+
+Without a `GITHUB_TOKEN`, generation falls back to the template's `offline_draft` and then runs
+the *same* renderer and validator. The prose is canned but the chart and its regions are
+genuinely new, so the portal demos fully offline. The response carries
+`generated_with_llm: false` and the UI badges it loudly — unlike the dialogue stub, silent
+fallback here would let a teacher publish canned text believing the model wrote it.
 
 ## Two Bloom's implementations now coexist
 
