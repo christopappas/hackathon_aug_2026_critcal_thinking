@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from . import config, dialogue, evaluator, explore, store, teacher
+from . import config, dialogue, evaluator, explore, llm, store, teacher
 from .anchors import resolve_anchor
 from .models import (
     ChatRequest,
@@ -21,7 +21,10 @@ from .models import (
     ExploreThread,
     HintRequest,
     HintResponse,
+    LlmModeRequest,
+    LlmModeResponse,
     Report,
+    Session,
     SessionRequest,
     SessionResponse,
 )
@@ -49,6 +52,20 @@ def health() -> dict:
     return {"status": "ok", "llm_enabled": config.llm_enabled(), "model": config.LLM_MODEL}
 
 
+def _load_session(session_id: str) -> Session:
+    """Fetch a session and apply its LLM mode to this request.
+
+    Every session-scoped endpoint goes through here so the mode can never be
+    silently skipped on one route -- a partial application would be invisible
+    until a demo produced a scripted reply in the middle of a live session.
+    """
+    session = store.get(session_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="session not found")
+    llm.set_stub_mode(session.llm_mode == "stub")
+    return session
+
+
 @app.get("/rubric")
 def get_rubric() -> dict:
     return config.load_rubric()
@@ -67,12 +84,19 @@ def create_session(request: SessionRequest | None = None) -> SessionResponse:
     except KeyError:
         raise HTTPException(status_code=404, detail=f"unknown content id: {content_id}") from None
     min_turns, max_turns = config.content_turn_range(content)
+    llm_mode = request.llm_mode if request else "live"
+    if llm_mode == "live" and not config.llm_enabled():
+        # Asking for live with nothing configured is not an error; it is the
+        # normal offline setup, and the response reports the mode actually in use.
+        llm_mode = "stub"
     session = store.create(
         content["id"],
         min_turns,
         max_turns,
         request.access_profile if request else None,
+        llm_mode,
     )
+    llm.set_stub_mode(session.llm_mode == "stub")
     return SessionResponse(
         session_id=session.session_id,
         content=content,
@@ -81,14 +105,13 @@ def create_session(request: SessionRequest | None = None) -> SessionResponse:
         opening_prompt=content["opening_prompt"],
         llm_enabled=config.llm_enabled(),
         access_profile=session.access_profile,
+        llm_mode=session.llm_mode,
     )
 
 
 @app.post("/hint", response_model=HintResponse)
 def hint(request: HintRequest) -> HintResponse:
-    session = store.get(request.session_id)
-    if session is None:
-        raise HTTPException(status_code=404, detail="session not found")
+    session = _load_session(request.session_id)
 
     # Same authority rule as the turn guard: server decides what's allowed, UI just displays it.
     if session.status == "complete" or session.turns_used >= session.max_turns:
@@ -115,9 +138,7 @@ def hint(request: HintRequest) -> HintResponse:
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(request: ChatRequest) -> ChatResponse:
-    session = store.get(request.session_id)
-    if session is None:
-        raise HTTPException(status_code=404, detail="session not found")
+    session = _load_session(request.session_id)
 
     # Turn guard is authoritative here; the UI counter is display only.
     if session.status == "complete" or session.turns_used >= session.max_turns:
@@ -174,9 +195,7 @@ def explore_start(request: ExploreStartRequest) -> ExploreStartResponse:
     dialogue by design. One thread is active per session; starting a new one
     replaces whatever was there before (the popover UI shows one at a time).
     """
-    session = store.get(request.session_id)
-    if session is None:
-        raise HTTPException(status_code=404, detail="session not found")
+    session = _load_session(request.session_id)
 
     content = config.load_content(session.content_id)
     excerpt = resolve_anchor(request.anchor, content)
@@ -195,9 +214,7 @@ def explore_start(request: ExploreStartRequest) -> ExploreStartResponse:
 
 @app.post("/explore/message", response_model=ExploreMessageResponse)
 def explore_message(request: ExploreMessageRequest) -> ExploreMessageResponse:
-    session = store.get(request.session_id)
-    if session is None:
-        raise HTTPException(status_code=404, detail="session not found")
+    session = _load_session(request.session_id)
     if session.explore is None:
         raise HTTPException(status_code=409, detail="no explore thread started for this session")
     # A generous anti-abuse ceiling, not a pedagogical limit - see MAX_EXPLORE_MESSAGES.
@@ -221,9 +238,30 @@ def explore_message(request: ExploreMessageRequest) -> ExploreMessageResponse:
 
 @app.get("/report/{session_id}", response_model=Report)
 def get_report(session_id: str) -> Report:
-    session = store.get(session_id)
-    if session is None:
-        raise HTTPException(status_code=404, detail="session not found")
+    session = _load_session(session_id)
     if session.report is None:
         raise HTTPException(status_code=409, detail="conversation not complete yet")
     return session.report
+
+
+@app.put("/session/{session_id}/llm-mode", response_model=LlmModeResponse)
+def set_llm_mode(session_id: str, request: LlmModeRequest) -> LlmModeResponse:
+    """Switch a session between the live provider and the scripted stub.
+
+    Allowed mid-conversation on purpose: the interesting demo is flipping modes
+    against the same transcript. Turns already taken keep whatever produced them,
+    since the report records generated_with_llm for the run as a whole.
+    """
+    session = _load_session(session_id)
+    if request.llm_mode == "live" and not config.llm_enabled():
+        raise HTTPException(status_code=409, detail="no LLM provider is configured")
+
+    session.llm_mode = request.llm_mode
+    store.save(session)
+    llm.set_stub_mode(session.llm_mode == "stub")
+
+    return LlmModeResponse(
+        llm_mode=session.llm_mode,
+        llm_enabled=config.llm_enabled(),
+        model=config.LLM_MODEL,
+    )

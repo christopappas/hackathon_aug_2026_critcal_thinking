@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  fetchHealth,
   fetchReport,
   listContent,
   requestHint,
   sendExploreMessage,
   sendMessage,
+  setSessionLlmMode,
   startExplore,
   startSession,
 } from "./api";
@@ -13,6 +15,7 @@ import { CompletionScreen } from "./components/CompletionScreen";
 import { ContentPicker } from "./components/ContentPicker";
 import { ContentViewer } from "./components/ContentViewer";
 import { ExplorePopover } from "./components/ExplorePopover";
+import { LlmModeToggle } from "./components/LlmModeToggle";
 import { MascotFlight } from "./components/MascotFlight";
 import { ReportCard } from "./components/ReportCard";
 import { TitleScreen } from "./components/TitleScreen";
@@ -23,6 +26,8 @@ import type {
   Anchor,
   ContentSummary,
   ExploreMessage,
+  HealthResponse,
+  LlmMode,
   Message,
   Report,
   SessionResponse,
@@ -34,6 +39,17 @@ type Phase = "loading" | "picking" | "chatting" | "celebrating" | "report" | "er
 type SplashStage = "showing" | "flying" | "done";
 
 const PROFILE_KEY = "think-it-through:access-profile";
+const LLM_MODE_KEY = "think-it-through:llm-mode";
+
+function loadLlmMode(): LlmMode {
+  try {
+    const stored = localStorage.getItem(LLM_MODE_KEY);
+    if (stored === "live" || stored === "stub") return stored;
+  } catch {
+    // Ignore unreadable storage; live is the right default when configured.
+  }
+  return "live";
+}
 
 function loadProfile(): AccessProfile {
   try {
@@ -73,6 +89,8 @@ export default function App() {
   // Mood stays inside ChatPanel — lifting it would drag `draft` up here and
   // re-render ContentViewer on every keystroke. Only the skin is shared.
   const [skin, setSkin] = useState<SockSkin>(loadSkin);
+  const [llmMode, setLlmMode] = useState<LlmMode>(loadLlmMode);
+  const [health, setHealth] = useState<HealthResponse | null>(null);
   // Deliberately NOT a Phase member. `Phase` tracks the fetch/session machine, and
   // `loadCatalog` -- which is also the restart path -- resets it. Keeping the title
   // card on its own axis makes replay-on-restart impossible by construction rather
@@ -84,6 +102,24 @@ export default function App() {
   function chooseSkin(next: SockSkin) {
     setSkin(next);
     saveSkin(next);
+  }
+
+  async function chooseLlmMode(next: LlmMode) {
+    setLlmMode(next);
+    try {
+      localStorage.setItem(LLM_MODE_KEY, next);
+    } catch {
+      // A saved preference is a convenience; the session still gets the mode.
+    }
+    // An in-flight session holds its own mode server-side, so it has to be told.
+    if (session) {
+      try {
+        await setSessionLlmMode(session.session_id, next);
+        setSession({ ...session, llm_mode: next });
+      } catch (err) {
+        setError(String(err));
+      }
+    }
   }
 
   const loadCatalog = useCallback(async () => {
@@ -108,6 +144,17 @@ export default function App() {
     void loadCatalog();
   }, [loadCatalog]);
 
+  // Whether a provider is reachable decides if 'Live' is offerable at all, so it
+  // is read once from the server rather than guessed in the UI.
+  useEffect(() => {
+    fetchHealth()
+      .then((result) => {
+        setHealth(result);
+        if (!result.llm_enabled) setLlmMode("stub");
+      })
+      .catch(() => setHealth(null));
+  }, []);
+
   // Drive styling from one attribute on <html> so every screen -- picker, chat,
   // completion, report -- adapts without each component knowing about the profile.
   useEffect(() => {
@@ -122,7 +169,11 @@ export default function App() {
   async function pickContent(contentId: string) {
     setPhase("loading");
     try {
-      setSession(await startSession(contentId, profile));
+      const created = await startSession(contentId, profile, llmMode);
+      setSession(created);
+      // The server downgrades to stub when nothing is configured; follow it so the
+      // dropdown shows what is actually running, not what was asked for.
+      setLlmMode(created.llm_mode);
       setMessages([]);
       setAnchor(null);
       setTurnsUsed(0);
@@ -229,8 +280,25 @@ export default function App() {
     }
   }
 
-  // The phase chain is wrapped in a function purely so the title card can overlay
-  // it during the handoff, when the picker and the title card are both on screen.
+  // One chrome wrapper for every screen: the mode has to be visible and switchable
+  // during the conversation, not just before it starts.
+  const withChrome = (screen: React.ReactNode) => (
+    <>
+      <LlmModeToggle
+        mode={llmMode}
+        onChange={(next) => void chooseLlmMode(next)}
+        llmEnabled={health?.llm_enabled ?? false}
+        model={health?.model ?? ""}
+        busy={busy || hintBusy}
+      />
+      {screen}
+    </>
+  );
+
+  // The phase chain is a function purely so the title card can overlay it during
+  // the handoff, when the picker and the title card are both on screen. It is only
+  // called once the card is on its way out, which is also what keeps the mode
+  // toggle off the title screen.
   function renderPhase() {
     if (phase === "loading") return <div className="center">Loading...</div>;
     if (phase === "error")
@@ -243,7 +311,7 @@ export default function App() {
         </div>
       );
     if (phase === "picking")
-      return (
+      return withChrome(
         <ContentPicker
           items={catalog}
           onPick={(id) => void pickContent(id)}
@@ -252,15 +320,17 @@ export default function App() {
           skin={skin}
           onSkinChange={chooseSkin}
           hideMascot={splash === "flying"}
-        />
+        />,
       );
     if (phase === "celebrating")
-      return <CompletionScreen onReveal={() => setPhase("report")} skin={skin} />;
+      return withChrome(<CompletionScreen onReveal={() => setPhase("report")} skin={skin} />);
     if (phase === "report" && report)
-      return <ReportCard report={report} onRestart={() => void loadCatalog()} skin={skin} />;
+      return withChrome(
+        <ReportCard report={report} onRestart={() => void loadCatalog()} skin={skin} />,
+      );
     if (!session) return null;
 
-    return (
+    return withChrome(
       <div className="layout">
       <ContentViewer
         content={session.content}
