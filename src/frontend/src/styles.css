@@ -742,3 +742,112 @@ button:disabled {
   background: #e9f9f2;
   color: #0a8a68;
 }
+
+/* ---------------------------------------------------------------------------
+   Dyslexia-friendly reading mode (issue #6)
+
+   Set by an educator before the session and applied via data-access on <html>,
+   so every screen adapts from one switch. These rules change how text is
+   *presented* only -- the reasoning demanded of the student is untouched.
+
+   Choices follow the British Dyslexia Association style guide: a sans-serif
+   face, ~1.5 line height, extra letter and word spacing, a measure of roughly
+   66 characters, an off-white background to cut glare, and left alignment
+   (justified text creates uneven "rivers" of white space that are hard to track).
+--------------------------------------------------------------------------- */
+
+:root[data-access="dyslexia"] {
+  --bg: #fbf7ef;
+  --card: #fffdf8;
+  --ink: #23303d;
+  --line: #e6ddcd;
+  font-family: "Verdana", "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  letter-spacing: 0.045em;
+  word-spacing: 0.16em;
+  line-height: 1.6;
+}
+
+:root[data-access="dyslexia"] .body-text {
+  font-size: 20px;
+  line-height: 1.9;
+  max-width: 66ch;
+  text-align: left;
+}
+
+/* Chunked paragraphs need visible separation to act as resting points. */
+:root[data-access="dyslexia"] .body-text p {
+  margin: 0 0 1.15em;
+}
+
+:root[data-access="dyslexia"] .bubble,
+:root[data-access="dyslexia"] .hint-text,
+:root[data-access="dyslexia"] textarea,
+:root[data-access="dyslexia"] .dimension p {
+  font-size: 18px;
+  line-height: 1.8;
+  max-width: 66ch;
+}
+
+:root[data-access="dyslexia"] h1,
+:root[data-access="dyslexia"] h2 {
+  line-height: 1.35;
+}
+
+/* Reduce animation, which competes for attention while decoding text. */
+:root[data-access="dyslexia"] * {
+  animation-duration: 0.001s !important;
+}
+
+/* --- Educator settings panel --- */
+
+.access-settings {
+  max-width: 620px;
+  margin: 40px auto 0;
+  padding: 20px 22px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.access-settings h2 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.access-toggle {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.access-toggle input {
+  margin-top: 3px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}
+
+.access-toggle small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* --- Accommodation note on the report card --- */
+
+.accommodations {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: var(--accent-soft);
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}

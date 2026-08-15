@@ -1,4 +1,4 @@
-import type { Anchor, ChatResponse, ContentSummary, HintResponse, Report, SessionResponse } from "./types";
+import type { AccessProfile, Anchor, ChatResponse, ContentSummary, HintResponse, Report, SessionResponse } from "./types";
 
 const BASE = "/api";
 
@@ -16,10 +16,10 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
 export const listContent = () => request<ContentSummary[]>("/content");
 
-export const startSession = (contentId: string) =>
+export const startSession = (contentId: string, accessProfile: AccessProfile) =>
   request<SessionResponse>("/session", {
     method: "POST",
-    body: JSON.stringify({ content_id: contentId }),
+    body: JSON.stringify({ content_id: contentId, access_profile: accessProfile }),
   });
 
 export const sendMessage = (sessionId: string, message: string, anchor: Anchor | null) =>

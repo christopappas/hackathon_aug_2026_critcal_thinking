@@ -5,14 +5,27 @@ import { CompletionScreen } from "./components/CompletionScreen";
 import { ContentPicker } from "./components/ContentPicker";
 import { ContentViewer } from "./components/ContentViewer";
 import { ReportCard } from "./components/ReportCard";
-import type { Anchor, ContentSummary, Message, Report, SessionResponse } from "./types";
+import type { AccessProfile, Anchor, ContentSummary, Message, Report, SessionResponse } from "./types";
 
 type Phase = "loading" | "picking" | "chatting" | "celebrating" | "report" | "error";
+
+const PROFILE_KEY = "think-it-through:access-profile";
+
+function loadProfile(): AccessProfile {
+  try {
+    const stored = localStorage.getItem(PROFILE_KEY);
+    if (stored) return JSON.parse(stored) as AccessProfile;
+  } catch {
+    // Ignore unreadable storage; the default profile is a safe fallback.
+  }
+  return { dyslexia_support: false };
+}
 
 export default function App() {
   const [phase, setPhase] = useState<Phase>("loading");
   const [catalog, setCatalog] = useState<ContentSummary[]>([]);
   const [session, setSession] = useState<SessionResponse | null>(null);
+  const [profile, setProfile] = useState<AccessProfile>(loadProfile);
   const [messages, setMessages] = useState<Message[]>([]);
   const [anchor, setAnchor] = useState<Anchor | null>(null);
   const [turnsUsed, setTurnsUsed] = useState(0);
@@ -44,10 +57,21 @@ export default function App() {
     void loadCatalog();
   }, [loadCatalog]);
 
+  // Drive styling from one attribute on <html> so every screen -- picker, chat,
+  // completion, report -- adapts without each component knowing about the profile.
+  useEffect(() => {
+    document.documentElement.dataset.access = profile.dyslexia_support ? "dyslexia" : "";
+    try {
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+    } catch {
+      // A student can still work through the session without a saved preference.
+    }
+  }, [profile]);
+
   async function pickContent(contentId: string) {
     setPhase("loading");
     try {
-      setSession(await startSession(contentId));
+      setSession(await startSession(contentId, profile));
       setMessages([]);
       setAnchor(null);
       setTurnsUsed(0);
@@ -113,7 +137,14 @@ export default function App() {
       </div>
     );
   if (phase === "picking")
-    return <ContentPicker items={catalog} onPick={(id) => void pickContent(id)} />;
+    return (
+      <ContentPicker
+        items={catalog}
+        onPick={(id) => void pickContent(id)}
+        profile={profile}
+        onProfileChange={setProfile}
+      />
+    );
   if (phase === "celebrating")
     return <CompletionScreen onReveal={() => setPhase("report")} />;
   if (phase === "report" && report)
@@ -127,6 +158,7 @@ export default function App() {
         activeAnchor={anchor}
         onAnchor={setAnchor}
         disabled={busy}
+        dyslexiaMode={session.access_profile?.dyslexia_support}
       />
       <ChatPanel
         messages={messages}

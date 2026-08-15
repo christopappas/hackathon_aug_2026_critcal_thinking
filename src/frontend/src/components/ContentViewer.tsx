@@ -6,10 +6,27 @@ interface Props {
   activeAnchor: Anchor | null;
   onAnchor: (anchor: Anchor | null) => void;
   disabled: boolean;
+  dyslexiaMode?: boolean;
 }
 
-export function ContentViewer({ content, activeAnchor, onAnchor, disabled }: Props) {
+/**
+ * Break the body into short paragraphs at sentence boundaries.
+ *
+ * Each chunk stays a contiguous substring of `content.body`, so text anchoring
+ * still resolves by `indexOf` against the original text.
+ */
+function chunkSentences(body: string, perChunk: number): string[] {
+  const sentences = body.split(/(?<=[.!?])\s+/).filter(Boolean);
+  const chunks: string[] = [];
+  for (let i = 0; i < sentences.length; i += perChunk) {
+    chunks.push(sentences.slice(i, i + perChunk).join(" "));
+  }
+  return chunks.length > 0 ? chunks : [body];
+}
+
+export function ContentViewer({ content, activeAnchor, onAnchor, disabled, dyslexiaMode }: Props) {
   const chartRef = useRef<HTMLDivElement>(null);
+  const paragraphs = dyslexiaMode ? chunkSentences(content.body, 2) : [content.body];
 
   function handleTextSelect() {
     if (disabled) return;
@@ -38,9 +55,11 @@ export function ContentViewer({ content, activeAnchor, onAnchor, disabled }: Pro
         {content.grade_level && <span className="chip grade">Grade {content.grade_level}</span>}
       </div>
 
-      <p className="body-text" onMouseUp={handleTextSelect}>
-        {content.body}
-      </p>
+      <div className="body-text" onMouseUp={handleTextSelect}>
+        {paragraphs.map((paragraph, index) => (
+          <p key={index}>{paragraph}</p>
+        ))}
+      </div>
       <p className="hint">Select any sentence above to point your question at it.</p>
 
       <div className="chart-wrap" ref={chartRef} onClick={handleChartClick}>

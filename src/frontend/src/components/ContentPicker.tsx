@@ -1,8 +1,11 @@
-import type { ContentSummary } from "../types";
+import type { AccessProfile, ContentSummary } from "../types";
+import { AccessSettings } from "./AccessSettings";
 
 interface Props {
   items: ContentSummary[];
   onPick: (id: string) => void;
+  profile: AccessProfile;
+  onProfileChange: (profile: AccessProfile) => void;
 }
 
 const ICONS: Record<string, string> = {
@@ -13,7 +16,7 @@ const ICONS: Record<string, string> = {
   "study-music": "🎧",
 };
 
-export function ContentPicker({ items, onPick }: Props) {
+export function ContentPicker({ items, onPick, profile, onProfileChange }: Props) {
   return (
     <div className="picker">
       <header className="picker-head">
@@ -32,6 +35,8 @@ export function ContentPicker({ items, onPick }: Props) {
           </button>
         ))}
       </div>
+
+      <AccessSettings profile={profile} onChange={onProfileChange} />
     </div>
   );
 }
