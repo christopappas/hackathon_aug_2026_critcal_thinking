@@ -132,8 +132,10 @@ def _render_bar(spec: dict) -> tuple[list[str], list[dict]]:
             _text(bx + bar_w / 2, bottom + 22, bar["label"], text_anchor="middle", font_size=13, fill=INK)
         )
         if bar.get("sublabel"):
+            # Sits between the bar label and the footnote; both offsets are tuned
+            # together in FOOTNOTE_Y so the two rows never touch.
             svg.append(
-                _text(bx + bar_w / 2, bottom + 38, bar["sublabel"], text_anchor="middle",
+                _text(bx + bar_w / 2, bottom + 36, bar["sublabel"], text_anchor="middle",
                       font_size=11, fill=MUTED)
             )
 
@@ -231,6 +233,49 @@ def _render_scatter(spec: dict) -> tuple[list[str], list[dict]]:
     return svg, regions
 
 
+ANN_W = 148
+
+# Low enough to clear a bar's sublabel row at bottom + 36, high enough that
+# descenders still fit inside the 400pt canvas.
+FOOTNOTE_Y = VIEW_H - 8
+
+
+def _annotation_anchor(spec: dict, kind: str) -> tuple[float, float]:
+    """Find somewhere the callout will not land on top of the data.
+
+    A fixed position collides the moment the chart has a tall bar on that side --
+    the value label and the callout end up on the same pixels. So place it over
+    whatever is shortest, which is by definition where the headroom is.
+    """
+    y_min, y_max = float(spec["y_min"]), float(spec["y_max"])
+
+    if kind == "bar":
+        plot = BAR_PLOT
+        bars = spec.get("bars") or []
+        if not bars:
+            return plot["left"] + 12, plot["top"] + 20
+        slot = (plot["right"] - plot["left"]) / len(bars)
+        # The shortest bar leaves the most room above it.
+        i = min(range(len(bars)), key=lambda j: float(bars[j]["value"]))
+        centre = plot["left"] + i * slot + slot / 2
+        x = centre - ANN_W / 2
+        # Sit just under the title, clear of the shortest bar's own value label.
+        y = plot["top"] - 4
+    else:
+        plot = SCATTER_PLOT
+        x_min, x_max = float(spec.get("x_min", 0)), float(spec.get("x_max", 1))
+        points = spec.get("points") or []
+        mid_x = (x_min + x_max) / 2
+        mid_y = (y_min + y_max) / 2
+        # Count what sits in each top corner and take the emptier one.
+        top_left = sum(1 for p in points if p["x"] < mid_x and p["y"] > mid_y)
+        top_right = sum(1 for p in points if p["x"] >= mid_x and p["y"] > mid_y)
+        x = plot["left"] + 16 if top_left <= top_right else plot["right"] - ANN_W - 4
+        y = plot["top"] + 14
+
+    return max(24, min(x, VIEW_W - ANN_W - 12)), y
+
+
 def render(spec: dict) -> tuple[str, list[dict]]:
     """Return the SVG markup and the normalized regions that match it exactly."""
     kind = spec.get("kind", "bar")
@@ -239,6 +284,7 @@ def render(spec: dict) -> tuple[str, list[dict]]:
 
     body, regions = (_render_bar if kind == "bar" else _render_scatter)(spec)
     bottom = (BAR_PLOT if kind == "bar" else SCATTER_PLOT)["bottom"]
+    ann_x, ann_y = _annotation_anchor(spec, kind)
 
     head = [
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {VIEW_W} {VIEW_H}" '
@@ -264,7 +310,6 @@ def render(spec: dict) -> tuple[str, list[dict]]:
                 current = f"{current} {word}".strip()
         if current:
             lines.append(current)
-        ann_x, ann_y = 448, 120
         for offset, line in enumerate(lines):
             tail.append(_text(ann_x, ann_y + offset * 16, line, font_size=11, fill=WARN))
         regions.append(
@@ -277,11 +322,11 @@ def render(spec: dict) -> tuple[str, list[dict]]:
 
     footnote = spec.get("footnote")
     if footnote:
-        tail.append(_text(30, VIEW_H - 16, footnote, font_size=11, fill=MUTED))
+        tail.append(_text(30, FOOTNOTE_Y, footnote, font_size=11, fill=MUTED))
         regions.append(
             {
                 "id": "footnote",
-                "box": _norm(24, bottom + 20, 440, 40),
+                "box": _norm(24, FOOTNOTE_Y - 18, 460, 26),
                 "caption": spec.get("footnote_caption") or f"the small note saying {footnote}",
             }
         )

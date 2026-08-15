@@ -25,6 +25,9 @@ for _runtime_dir in (GENERATED_CONTENT_DIR, GENERATED_STATIC_DIR, CUSTOM_TEMPLAT
 
 MIN_TURNS = int(os.getenv("MIN_TURNS", "3"))
 MAX_TURNS = int(os.getenv("MAX_TURNS", "5"))
+MAX_HINTS_PER_TURN = int(os.getenv("MAX_HINTS_PER_TURN", "3"))
+MAX_EXPLORE_MESSAGES = int(os.getenv("MAX_EXPLORE_MESSAGES", "30"))
+"""Anti-abuse ceiling on an explore thread, not a pedagogical turn limit like MAX_TURNS."""
 
 DEFAULT_LLM_BASE_URL = "https://models.inference.ai.azure.com"
 

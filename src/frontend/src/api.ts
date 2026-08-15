@@ -2,9 +2,12 @@ import type {
   Anchor,
   ChatResponse,
   ContentSummary,
+  ExploreMessageResponse,
+  ExploreStartResponse,
   GenerateRequest,
   GenerateResponse,
   GeneratedContent,
+  HintResponse,
   Report,
   SessionResponse,
   TeacherContentRow,
@@ -41,6 +44,24 @@ export const sendMessage = (sessionId: string, message: string, anchor: Anchor |
 
 export const fetchReport = (sessionId: string) =>
   request<Report>(`/report/${sessionId}`);
+
+export const requestHint = (sessionId: string, anchor: Anchor | null) =>
+  request<HintResponse>("/hint", {
+    method: "POST",
+    body: JSON.stringify({ session_id: sessionId, anchor }),
+  });
+
+export const startExplore = (sessionId: string, anchor: Anchor) =>
+  request<ExploreStartResponse>("/explore/start", {
+    method: "POST",
+    body: JSON.stringify({ session_id: sessionId, anchor }),
+  });
+
+export const sendExploreMessage = (sessionId: string, message: string) =>
+  request<ExploreMessageResponse>("/explore/message", {
+    method: "POST",
+    body: JSON.stringify({ session_id: sessionId, message }),
+  });
 
 // --- Teacher portal ---
 

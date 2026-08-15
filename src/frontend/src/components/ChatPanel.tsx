@@ -12,6 +12,10 @@ interface Props {
   maxTurns: number;
   busy: boolean;
   disabled: boolean;
+  hints: string[];
+  onHint: () => void;
+  hintBusy: boolean;
+  maxHintsPerTurn: number;
 }
 
 function anchorLabel(anchor: Anchor): string {
@@ -31,6 +35,10 @@ export function ChatPanel({
   maxTurns,
   busy,
   disabled,
+  hints,
+  onHint,
+  hintBusy,
+  maxHintsPerTurn,
 }: Props) {
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
@@ -74,6 +82,12 @@ export function ChatPanel({
             {message.text}
           </div>
         ))}
+        {hints.map((text, index) => (
+          <div key={`hint-${index}`} className="bubble hint-bubble">
+            <div className="hint-label">Hint {index + 1}</div>
+            {text}
+          </div>
+        ))}
         {busy && (
           <div className="bubble tutor thinking">
             <span />
@@ -107,6 +121,17 @@ export function ChatPanel({
           <button type="submit" disabled={busy || disabled || !draft.trim()}>
             Send
           </button>
+        </div>
+        <div className="hint-row">
+          <button
+            type="button"
+            className="hint-button"
+            onClick={onHint}
+            disabled={busy || disabled || hintBusy || hints.length >= maxHintsPerTurn}
+          >
+            {hints.length === 0 ? "Need a hint?" : `Another hint (${hints.length}/${maxHintsPerTurn} used)`}
+          </button>
+          <span className="hint-cost">Hints can lower your score for this turn.</span>
         </div>
       </form>
     </section>

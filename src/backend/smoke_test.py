@@ -218,6 +218,57 @@ def main() -> int:
         assert exc.code == 409, f"expected 409, got {exc.code}"
         print("\nturn guard correctly rejected a 6th message (409)")
 
+    # Layered hints: a fresh session, maxed out on hints for the first turn.
+    hint_session = call("POST", "/session", {"content_id": catalog[0]["id"]})
+    hsid = hint_session["session_id"]
+    print(f"\n--- hint ladder (session {hsid}) ---")
+
+    levels_seen = []
+    for _ in range(3):
+        reply = call("POST", "/hint", {"session_id": hsid, "anchor": None})
+        levels_seen.append(reply["hint_level"])
+        assert reply["hint"], "hint text was empty"
+        print(f"  hint {reply['hint_level']}/{reply['max_hints_per_turn']}: {reply['hint'][:80]}")
+    assert levels_seen == [1, 2, 3], f"expected hint levels 1,2,3 in order, got {levels_seen}"
+
+    hint_capped = None
+    try:
+        call("POST", "/hint", {"session_id": hsid, "anchor": None})
+    except urllib.error.HTTPError as exc:
+        hint_capped = exc.code
+    assert hint_capped == 409, f"expected 409 once hints are maxed out for the turn, got {hint_capped}"
+    print("  4th hint correctly rejected (409) - max 3 hints per turn")
+
+    # Sending the message should fold the 3 hints into that exchange, then
+    # reset the per-turn hint budget so the next turn can use hints again.
+    first_message, _ = MESSAGES[0]
+    call("POST", "/chat", {"session_id": hsid, "message": first_message, "anchor": None})
+    reply = call("POST", "/hint", {"session_id": hsid, "anchor": None})
+    assert reply["hint_level"] == 1, "hint budget should reset on the next turn"
+    print("  hint budget reset after sending a message (turn 2 starts at hint 1)")
+
+    # Explore popover: an open-ended, unscored side discussion anchored to one spot.
+    # Independent of the graded dialogue, so it's exercised on the already-completed session.
+    print(f"\n--- explore popover (session {sid}) ---")
+    start = call(
+        "POST",
+        "/explore/start",
+        {"session_id": sid, "anchor": {"kind": "text", "quote": "Our survey of 200 students"}},
+    )
+    assert start["opening"], "explore opening was empty"
+    print(f"  opened on: {start['anchor_excerpt']}")
+    print(f"  opening: {start['opening'][:80]}")
+
+    explore_reply = call("POST", "/explore/message", {"session_id": sid, "message": "Why 200 students?"})
+    assert explore_reply["messages_used"] == 1
+    print(f"  reply: {explore_reply['reply'][:80]}")
+
+    report_after_explore = call("GET", f"/report/{sid}")
+    assert report_after_explore == report, "explore thread must never change the graded report"
+    print("  report card unchanged by the explore thread (unscored, as designed)")
+
+    # Teacher flow runs last: it adds to the content library, so keeping it after the
+    # checks that read the catalog means they see a stable list.
     generated_id = None
     try:
         generated_id = teacher_flow()
