@@ -11,6 +11,8 @@ interface Props {
   onProfileChange: (profile: AccessProfile) => void;
   skin: SockSkin;
   onSkinChange: (skin: SockSkin) => void;
+  /** Hidden while MascotFlight is carrying the title card's mascot into this slot. */
+  hideMascot?: boolean;
 }
 
 // Icons for the five built-in pieces. Generated content carries its own icon field,
@@ -23,12 +25,22 @@ const ICONS: Record<string, string> = {
   "study-music": "🎧",
 };
 
-export function ContentPicker({ items, onPick, profile, onProfileChange, skin, onSkinChange }: Props) {
+export function ContentPicker({
+  items,
+  onPick,
+  profile,
+  onProfileChange,
+  skin,
+  onSkinChange,
+  hideMascot = false,
+}: Props) {
   return (
     <div className="picker">
       <header className="picker-head">
+        {/* `visibility` rather than unmounting: MascotFlight measures this element to
+            find where to land, so it has to keep its box in the layout. */}
         <Sockrates
-          className="picker-mascot"
+          className={`picker-mascot${hideMascot ? " is-handoff" : ""}`}
           skin={skin}
           mood="idle"
           size={150}
