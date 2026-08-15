@@ -74,6 +74,13 @@ guard rejects a 6th message with 409:
 cd src/backend && .venv/bin/python smoke_test.py
 ```
 
+## CI
+
+`.github/workflows/ci.yml` runs on every push to `main` and every PR: `pytest` + `smoke_test.py`
+for the backend (Python 3.12, no token needed — tests force offline mode), `tsc -b && vite
+build` for the frontend. No deploy step yet — nothing is hosted anywhere, so there's no target
+to wire up. When one exists, add a `deploy` job gated on the existing checks passing.
+
 ## Setup traps
 
 **Use Python 3.12+, never the macOS system `python3`.** System Python is 3.9.6 and *will*
