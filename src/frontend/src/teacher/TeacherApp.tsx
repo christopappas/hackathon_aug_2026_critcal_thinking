@@ -217,7 +217,7 @@ export default function TeacherApp() {
 function TeacherNav() {
   return (
     <nav className="teacher-nav">
-      <strong>Think It Through — teacher portal</strong>
+      <strong>Sockrates — teacher portal</strong>
       <a href="/">Open the student view →</a>
     </nav>
   );
