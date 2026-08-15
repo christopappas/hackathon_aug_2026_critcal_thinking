@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
+import type { SockSkin } from "../sockSkin";
+import { Sockrates } from "./Sockrates";
 
 interface Props {
   onReveal: () => void;
+  skin: SockSkin;
 }
 
 const CONFETTI = Array.from({ length: 40 }, (_, i) => i);
 
-export function CompletionScreen({ onReveal }: Props) {
+export function CompletionScreen({ onReveal, skin }: Props) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -29,11 +32,11 @@ export function CompletionScreen({ onReveal }: Props) {
         ))}
       </div>
       <div className="completion-card">
-        <div className="badge">✦</div>
-        <h1>You thought it through!</h1>
+        <Sockrates className="completion-mascot" skin={skin} mood="celebrating" size={132} />
+        <h1>Sockrates is impressed!</h1>
         <p>You questioned a claim instead of just accepting it. That is the whole game.</p>
         <button type="button" onClick={onReveal} disabled={!ready}>
-          {ready ? "See my report card" : "Scoring your thinking..."}
+          {ready ? "See my report card" : "Sockrates is taking notes..."}
         </button>
       </div>
     </div>

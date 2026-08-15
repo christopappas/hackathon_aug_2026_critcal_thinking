@@ -43,5 +43,5 @@
       { "t": 23.0, "text": "Host: This study was paid for by ZapFuel." }
     ]
   },
-  "opening_prompt": "This ad wants you to believe ZapFuel helps you focus. What is one question you would ask first? You can highlight part of the ad or click part of the graph."
+  "opening_prompt": "Aha - this ad wants you to believe ZapFuel helps you focus. I am only a sock, so I ask a great many questions. What would YOU ask first? Highlight part of the ad, or click part of the graph."
 }

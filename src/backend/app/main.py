@@ -28,7 +28,7 @@ from .models import (
 
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="Critical Thinking API", version="0.1.0")
+app = FastAPI(title="Sockrates API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,

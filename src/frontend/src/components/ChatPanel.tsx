@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import type { SockSkin } from "../sockSkin";
 import type { Anchor, Message } from "../types";
+import { useSockratesMood } from "../useSockratesMood";
+import { SockDrawer } from "./SockDrawer";
+import { Sockrates } from "./Sockrates";
 
 interface Props {
   messages: Message[];
@@ -16,6 +20,8 @@ interface Props {
   onHint: () => void;
   hintBusy: boolean;
   maxHintsPerTurn: number;
+  skin: SockSkin;
+  onSkinChange: (skin: SockSkin) => void;
 }
 
 function anchorLabel(anchor: Anchor): string {
@@ -39,12 +45,18 @@ export function ChatPanel({
   onHint,
   hintBusy,
   maxHintsPerTurn,
+  skin,
+  onSkinChange,
 }: Props) {
   const [draft, setDraft] = useState("");
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  const mood = useSockratesMood(messages, busy, hintBusy, hints.length, draft);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Smooth scrolling is driven by JS, so no media query reaches it.
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    endRef.current?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
   }, [messages.length, busy]);
 
   function submit(event: React.FormEvent) {
@@ -57,8 +69,21 @@ export function ChatPanel({
 
   return (
     <section className="chat-panel">
+      {/* .chat-header is justify-content: space-between, so the sock and the title
+          are wrapped together to keep the row at exactly two children. */}
       <header className="chat-header">
-        <h2>Think it through</h2>
+        <div className="chat-title">
+          <button
+            type="button"
+            className="sock-swap"
+            aria-label="Change Sockrates' sock"
+            aria-expanded={drawerOpen}
+            onClick={() => setDrawerOpen((open) => !open)}
+          >
+            <Sockrates mood={mood} skin={skin} size={76} />
+          </button>
+          <h2>Sockrates</h2>
+        </div>
         <div className="turn-track" title={`${minTurns}-${maxTurns} exchanges`}>
           {Array.from({ length: maxTurns }, (_, i) => (
             <span
@@ -71,6 +96,17 @@ export function ChatPanel({
           </span>
         </div>
       </header>
+
+      {drawerOpen && (
+        <SockDrawer
+          skin={skin}
+          popover
+          onPick={(next) => {
+            onSkinChange(next);
+            setDrawerOpen(false);
+          }}
+        />
+      )}
 
       <div className="messages">
         <div className="bubble tutor opening">{openingPrompt}</div>

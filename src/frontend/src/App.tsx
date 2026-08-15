@@ -14,6 +14,8 @@ import { ContentPicker } from "./components/ContentPicker";
 import { ContentViewer } from "./components/ContentViewer";
 import { ExplorePopover } from "./components/ExplorePopover";
 import { ReportCard } from "./components/ReportCard";
+import { loadSkin, saveSkin } from "./sockSkin";
+import type { SockSkin } from "./sockSkin";
 import type { Anchor, ContentSummary, ExploreMessage, Message, Report, SessionResponse } from "./types";
 
 type Phase = "loading" | "picking" | "chatting" | "celebrating" | "report" | "error";
@@ -42,6 +44,14 @@ export default function App() {
   const [maxHintsPerTurn, setMaxHintsPerTurn] = useState(3);
   const [hintBusy, setHintBusy] = useState(false);
   const [explore, setExplore] = useState<ExplorePopupState | null>(null);
+  // Mood stays inside ChatPanel — lifting it would drag `draft` up here and
+  // re-render ContentViewer on every keystroke. Only the skin is shared.
+  const [skin, setSkin] = useState<SockSkin>(loadSkin);
+
+  function chooseSkin(next: SockSkin) {
+    setSkin(next);
+    saveSkin(next);
+  }
 
   const loadCatalog = useCallback(async () => {
     setPhase("loading");
@@ -186,11 +196,18 @@ export default function App() {
       </div>
     );
   if (phase === "picking")
-    return <ContentPicker items={catalog} onPick={(id) => void pickContent(id)} />;
+    return (
+      <ContentPicker
+        items={catalog}
+        onPick={(id) => void pickContent(id)}
+        skin={skin}
+        onSkinChange={chooseSkin}
+      />
+    );
   if (phase === "celebrating")
-    return <CompletionScreen onReveal={() => setPhase("report")} />;
+    return <CompletionScreen onReveal={() => setPhase("report")} skin={skin} />;
   if (phase === "report" && report)
-    return <ReportCard report={report} onRestart={() => void loadCatalog()} />;
+    return <ReportCard report={report} onRestart={() => void loadCatalog()} skin={skin} />;
   if (!session) return null;
 
   return (
@@ -217,6 +234,8 @@ export default function App() {
         onHint={() => void handleHint()}
         hintBusy={hintBusy}
         maxHintsPerTurn={maxHintsPerTurn}
+        skin={skin}
+        onSkinChange={chooseSkin}
       />
       {explore && (
         <ExplorePopover
