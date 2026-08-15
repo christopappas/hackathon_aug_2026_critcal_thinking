@@ -6,6 +6,8 @@
   --accent: #2f6feb;
   --accent-soft: #e8f0ff;
   --good: #06d6a0;
+  --green: #109c6c;
+  --green-hover: #0c7f57;
   --line: #e3e8f0;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
   color: var(--ink);
@@ -573,11 +575,30 @@ button:disabled {
 .restart {
   display: block;
   margin: 0 auto;
-  background: none;
-  border: 1px solid var(--line);
+  background: var(--green);
+  border: none;
   border-radius: 999px;
-  padding: 11px 26px;
-  color: var(--muted);
+  padding: 12px 30px;
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(16, 156, 108, 0.28);
+  transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+}
+
+.restart:hover {
+  background: var(--green-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(16, 156, 108, 0.38);
+}
+
+.restart:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(16, 156, 108, 0.28);
+}
+
+.restart:focus-visible {
+  outline: 3px solid var(--green-hover);
+  outline-offset: 3px;
 }
 
 /* Content picker */
