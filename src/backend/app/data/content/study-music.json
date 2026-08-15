@@ -43,5 +43,5 @@
       { "t": 23.0, "text": "Judge: How do you know it was the music that made the difference?" }
     ]
   },
-  "opening_prompt": "This poster says music makes you smarter. What would you need to know before you believe it? You can highlight a sentence or click part of the graph."
+  "opening_prompt": "This poster claims music makes you smarter. A bold claim! What would you need to know before you believed it? Highlight a sentence, or click part of the graph."
 }

@@ -1,13 +1,16 @@
+import type { SockSkin } from "../sockSkin";
 import type { Report } from "../types";
+import { Sockrates } from "./Sockrates";
 
 const BLOOM = ["Remember", "Understand", "Apply", "Analyze", "Evaluate", "Create"];
 
 interface Props {
   report: Report;
   onRestart: () => void;
+  skin: SockSkin;
 }
 
-export function ReportCard({ report, onRestart }: Props) {
+export function ReportCard({ report, onRestart, skin }: Props) {
   const reachedIndex = BLOOM.indexOf(report.bloom_level_reached);
 
   return (
@@ -18,7 +21,7 @@ export function ReportCard({ report, onRestart }: Props) {
           <span className="out-of">/ 10</span>
         </div>
         <div>
-          <h1>Your Critical Thinking Report</h1>
+          <h1>Sockrates' Notes</h1>
           <p className="explanation">{report.explanation}</p>
           {!report.generated_with_llm && (
             <p className="stub-note">Offline scoring mode - add a token for LLM scoring.</p>
@@ -31,6 +34,12 @@ export function ReportCard({ report, onRestart }: Props) {
             </p>
           )}
         </div>
+        <Sockrates
+          className="report-mascot"
+          skin={skin}
+          mood={report.overall_score >= 7 ? "impressed" : "idle"}
+          size={66}
+        />
       </header>
 
       <section className="bloom">

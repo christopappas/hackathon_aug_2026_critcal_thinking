@@ -1,11 +1,16 @@
+import type { SockSkin } from "../sockSkin";
 import type { AccessProfile, ContentSummary } from "../types";
 import { AccessSettings } from "./AccessSettings";
+import { SockDrawer } from "./SockDrawer";
+import { Sockrates } from "./Sockrates";
 
 interface Props {
   items: ContentSummary[];
   onPick: (id: string) => void;
   profile: AccessProfile;
   onProfileChange: (profile: AccessProfile) => void;
+  skin: SockSkin;
+  onSkinChange: (skin: SockSkin) => void;
 }
 
 const ICONS: Record<string, string> = {
@@ -16,12 +21,23 @@ const ICONS: Record<string, string> = {
   "study-music": "🎧",
 };
 
-export function ContentPicker({ items, onPick, profile, onProfileChange }: Props) {
+export function ContentPicker({ items, onPick, profile, onProfileChange, skin, onSkinChange }: Props) {
   return (
     <div className="picker">
       <header className="picker-head">
-        <h1>Think It Through</h1>
-        <p>Pick something to question. You will talk it over, then get a thinking report card.</p>
+        <Sockrates
+          className="picker-mascot"
+          skin={skin}
+          mood="idle"
+          size={150}
+          title="Sockrates, a sock puppet philosopher"
+        />
+        <h1>Sockrates</h1>
+        <p>
+          A sock with questions. Pick something to question — he will ask you why, then hand you a
+          thinking report card.
+        </p>
+        <SockDrawer skin={skin} onPick={onSkinChange} />
       </header>
 
       <div className="picker-grid">

@@ -96,3 +96,20 @@ export interface HintResponse {
   hints_used_this_turn: number;
   max_hints_per_turn: number;
 }
+
+export interface ExploreMessage {
+  role: "student" | "tutor";
+  text: string;
+}
+
+export interface ExploreStartResponse {
+  opening: string;
+  anchor_excerpt: string | null;
+  max_messages: number;
+}
+
+export interface ExploreMessageResponse {
+  reply: string;
+  messages_used: number;
+  max_messages: number;
+}
