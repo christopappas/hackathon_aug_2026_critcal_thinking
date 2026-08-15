@@ -67,7 +67,9 @@ cd src/frontend && npm run dev
 ```
 
 Open <http://localhost:5173> for the student view, or <http://localhost:5173/teacher> for the
-teacher portal — `main.tsx` branches on the path, so there is no router. Vite proxies `/api`
+teacher portal — `main.tsx` branches on the path, so there is no router. The portal's two
+screens (content, and the mock **Completions** dashboard) are phases of `TeacherApp`, not
+routes, so its nav switches state rather than navigating. Vite proxies `/api`
 and `/static` to the backend, so there is no CORS setup to do. Interactive API docs at
 <http://localhost:8000/docs>.
 
@@ -173,6 +175,12 @@ Preserve these when changing things — each exists for a stated reason:
   thing it points at. Nothing else may write a `regions` list.
 - **The rubric is data, not prompt text** (`app/data/rubric.json`), so the UI, evaluator, and
   report generator share one source of truth.
+- **The completions dashboard is mock, and says so in the payload** (`app/completions.py`,
+  `mock: true`). Sessions are anonymous and in-memory, so there is nothing real to report;
+  a table of student names and scores is exactly the thing someone would screenshot and
+  believe, so the disclaimer travels with the data rather than living only in the UI. Its
+  scores go through `evaluator.overall_score` / `evaluator.bloom_level`, the same arithmetic
+  a real report card uses, so mock rows cannot show a score the scorer could never hand out.
 - **Hints cost score, not turns.** Up to 3 per turn, tracked on the exchange and docked against
   Question Quality and Evidence & Reasoning deterministically in `evaluator.py` (not just
   prompted for), so it holds in offline heuristic mode too.

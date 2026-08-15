@@ -9,6 +9,16 @@ from .models import DimensionScore, Report, Session
 BLOOM_LEVELS = ["Remember", "Understand", "Apply", "Analyze", "Evaluate", "Create"]
 
 
+def overall_score(scores: list[int]) -> int:
+    """Five dimensions scored 1-4 gives 5-20; present it on a friendlier 1-10 scale."""
+    return max(1, min(10, round(sum(scores) / len(scores) * 2.5)))
+
+
+def bloom_level(scores: list[int]) -> str:
+    """The level a set of dimension scores adds up to."""
+    return BLOOM_LEVELS[min(len(BLOOM_LEVELS) - 1, max(0, sum(scores) // 4))]
+
+
 def _scoring_schema(dimension_ids: list[str]) -> dict:
     return {
         "type": "object",
@@ -182,11 +192,9 @@ def _heuristic_scores(session: Session) -> dict:
             }
         )
 
-    total = sum(raw.values())
-    level_index = min(len(BLOOM_LEVELS) - 1, max(0, total // 4))
     return {
         "dimensions": dimensions,
-        "bloom_level_reached": BLOOM_LEVELS[level_index],
+        "bloom_level_reached": bloom_level(list(raw.values())),
         "explanation": (
             f"Across {len(messages)} messages you asked questions about the report and "
             "worked toward testing its conclusion rather than accepting it."
@@ -254,13 +262,9 @@ def build_report(session: Session, content: dict) -> Report:
     ]
     _apply_hint_penalty(dimensions, session)
 
-    # Five dimensions scored 1-4 gives 5-20; present it on a friendlier 1-10 scale.
-    raw_total = sum(d.score for d in dimensions)
-    overall = max(1, min(10, round(raw_total / len(dimensions) * 2.5)))
-
     return Report(
         session_id=session.session_id,
-        overall_score=overall,
+        overall_score=overall_score([d.score for d in dimensions]),
         bloom_level_reached=payload["bloom_level_reached"],
         explanation=payload["explanation"],
         dimensions=dimensions,

@@ -16,8 +16,15 @@ import logging
 
 from fastapi import APIRouter, HTTPException
 
-from . import config, generator, importer, templates, validation
-from .models import ContentPatch, GenerateRequest, GenerateResponse, ImportRequest, Template
+from . import completions, config, generator, importer, templates, validation
+from .models import (
+    CompletionsResponse,
+    ContentPatch,
+    GenerateRequest,
+    GenerateResponse,
+    ImportRequest,
+    Template,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -120,6 +127,17 @@ def import_content(request: ImportRequest) -> GenerateResponse:
         thinking_trap=content.get("thinking_trap", ""),
         generated_with_llm=False,
     )
+
+
+@router.get("/completions", response_model=CompletionsResponse)
+def list_completions() -> CompletionsResponse:
+    """Who finished what, and how they scored.
+
+    Mock data. Sessions are anonymous and in-memory, so there is nothing real to
+    report yet -- the response says so with `mock: true` rather than letting a
+    demo class pass for a real one. See completions.py.
+    """
+    return completions.build()
 
 
 @router.get("/content")

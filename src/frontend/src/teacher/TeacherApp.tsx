@@ -4,17 +4,20 @@ import {
   generateContent,
   getTeacherContent,
   importContent,
+  listCompletions,
   listTeacherContent,
   listTemplates,
   publishContent,
   unpublishContent,
 } from "../api";
 import type {
+  CompletionsResponse,
   GeneratedContent,
   GenerateRequest,
   TeacherContentRow,
   Template,
 } from "../types";
+import { CompletionsTable } from "./CompletionsTable";
 import { ContentTable } from "./ContentTable";
 import { DraftPreview } from "./DraftPreview";
 import { GenerateForm } from "./GenerateForm";
@@ -22,7 +25,14 @@ import { ImportForm } from "./ImportForm";
 import { TemplateGallery } from "./TemplateGallery";
 
 // Same shape as App.tsx: a phase union with sequential early returns, no router.
-type Phase = "loading" | "home" | "editing" | "importing" | "previewing" | "error";
+type Phase =
+  | "loading"
+  | "home"
+  | "editing"
+  | "importing"
+  | "previewing"
+  | "completions"
+  | "error";
 
 export default function TeacherApp() {
   const [phase, setPhase] = useState<Phase>("loading");
@@ -30,6 +40,7 @@ export default function TeacherApp() {
   const [rows, setRows] = useState<TeacherContentRow[]>([]);
   const [template, setTemplate] = useState<Template | null>(null);
   const [draft, setDraft] = useState<GeneratedContent | null>(null);
+  const [completions, setCompletions] = useState<CompletionsResponse | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [trap, setTrap] = useState("");
   const [usedLlm, setUsedLlm] = useState(false);
@@ -103,6 +114,21 @@ export default function TeacherApp() {
     }
   }
 
+  async function handleShowCompletions() {
+    setBusy(true);
+    setError("");
+    try {
+      // Fetched on entry rather than with the rest of the portal: the dashboard is a
+      // side trip, and the content manager should not wait on it to render.
+      setCompletions(await listCompletions());
+      setPhase("completions");
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function handlePreviewExisting(id: string) {
     setBusy(true);
     try {
@@ -120,6 +146,15 @@ export default function TeacherApp() {
     }
   }
 
+  const nav = (
+    <TeacherNav
+      active={phase === "completions" ? "completions" : "content"}
+      busy={busy}
+      onHome={() => setPhase("home")}
+      onCompletions={() => void handleShowCompletions()}
+    />
+  );
+
   if (phase === "loading") return <div className="center">Loading…</div>;
   if (phase === "error")
     return (
@@ -134,7 +169,7 @@ export default function TeacherApp() {
   if (phase === "editing" && template)
     return (
       <div className="teacher">
-        <TeacherNav />
+        {nav}
         {error && <p className="notice error">{error}</p>}
         <GenerateForm
           template={template}
@@ -148,7 +183,7 @@ export default function TeacherApp() {
   if (phase === "importing")
     return (
       <div className="teacher">
-        <TeacherNav />
+        {nav}
         {error && <p className="notice error">{error}</p>}
         <ImportForm
           busy={busy}
@@ -158,10 +193,19 @@ export default function TeacherApp() {
       </div>
     );
 
+  if (phase === "completions" && completions)
+    return (
+      <div className="teacher">
+        {nav}
+        {error && <p className="notice error">{error}</p>}
+        <CompletionsTable data={completions} onBack={() => setPhase("home")} />
+      </div>
+    );
+
   if (phase === "previewing" && draft)
     return (
       <div className="teacher">
-        <TeacherNav />
+        {nav}
         <DraftPreview
           content={draft}
           warnings={warnings}
@@ -188,7 +232,7 @@ export default function TeacherApp() {
 
   return (
     <div className="teacher">
-      <TeacherNav />
+      {nav}
       {error && <p className="notice error">{error}</p>}
       <TemplateGallery
         templates={templates}
@@ -214,11 +258,40 @@ export default function TeacherApp() {
   );
 }
 
-function TeacherNav() {
+function TeacherNav({
+  active,
+  busy,
+  onHome,
+  onCompletions,
+}: {
+  active: "content" | "completions";
+  busy: boolean;
+  onHome: () => void;
+  onCompletions: () => void;
+}) {
   return (
     <nav className="teacher-nav">
       <strong>Sockrates — teacher portal</strong>
-      <a href="/">Open the student view →</a>
+      <div className="teacher-nav-links">
+        <button
+          type="button"
+          className={`nav-link${active === "content" ? " current" : ""}`}
+          aria-current={active === "content" ? "page" : undefined}
+          onClick={onHome}
+        >
+          Content
+        </button>
+        <button
+          type="button"
+          className={`nav-link${active === "completions" ? " current" : ""}`}
+          aria-current={active === "completions" ? "page" : undefined}
+          disabled={busy}
+          onClick={onCompletions}
+        >
+          Completions
+        </button>
+        <a href="/">Open the student view →</a>
+      </div>
     </nav>
   );
 }
