@@ -12,8 +12,12 @@ src/backend/app/static/generated/
 # Node
 node_modules/
 dist/
+.vite/
 *.local
 *.tsbuildinfo
+
+# Tests
+.pytest_cache/
 
 # Editors / OS
 .vscode/

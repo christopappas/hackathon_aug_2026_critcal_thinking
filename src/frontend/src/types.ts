@@ -98,6 +98,10 @@ export interface TeacherContentRow {
   source: { topic?: string; generated_with_llm?: boolean; created_at?: string };
 }
 
+export interface AccessProfile {
+  dyslexia_support: boolean;
+}
+
 export interface SessionResponse {
   session_id: string;
   content: Content;
@@ -105,6 +109,7 @@ export interface SessionResponse {
   max_turns: number;
   opening_prompt: string;
   llm_enabled: boolean;
+  access_profile: AccessProfile;
 }
 
 export interface ChatResponse {
@@ -132,6 +137,7 @@ export interface Report {
   dimensions: DimensionScore[];
   next_step: string;
   generated_with_llm: boolean;
+  accommodations: string[];
 }
 
 export interface Message {

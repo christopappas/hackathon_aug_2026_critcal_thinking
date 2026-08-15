@@ -29,6 +29,24 @@ class Anchor(BaseModel):
         return self
 
 
+class AccessProfile(BaseModel):
+    """Accommodations an educator sets in advance for a student.
+
+    These change how content is *presented* and how mechanics are treated in
+    scoring. They never lower the reasoning demand -- otherwise the report
+    stops measuring critical thinking and starts measuring literacy.
+    """
+
+    dyslexia_support: bool = False
+
+    @property
+    def active(self) -> bool:
+        return self.dyslexia_support
+
+    def labels(self) -> list[str]:
+        return ["Dyslexia-friendly reading mode"] if self.dyslexia_support else []
+
+
 class Exchange(BaseModel):
     index: int
     student_message: str
@@ -54,6 +72,8 @@ class Report(BaseModel):
     dimensions: list[DimensionScore]
     next_step: str
     generated_with_llm: bool
+    accommodations: list[str] = Field(default_factory=list)
+    """Accommodations in effect, shown on the report so the score is read in context."""
 
 
 class ExploreMessage(BaseModel):
@@ -82,6 +102,7 @@ class Session(BaseModel):
     status: Literal["active", "may_conclude", "complete"] = "active"
     exchanges: list[Exchange] = Field(default_factory=list)
     report: Report | None = None
+    access_profile: AccessProfile = Field(default_factory=AccessProfile)
     pending_hints: int = 0
     """Hints requested for the in-progress turn; folded into the next Exchange, then reset."""
     explore: ExploreThread | None = None
@@ -108,6 +129,7 @@ class ContentSummary(BaseModel):
 
 class SessionRequest(BaseModel):
     content_id: str | None = None
+    access_profile: AccessProfile | None = None
 
 
 class SessionResponse(BaseModel):
@@ -117,6 +139,7 @@ class SessionResponse(BaseModel):
     max_turns: int
     opening_prompt: str
     llm_enabled: bool
+    access_profile: AccessProfile = Field(default_factory=AccessProfile)
 
 
 class ChatRequest(BaseModel):

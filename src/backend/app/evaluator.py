@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from .config import load_rubric
 from .llm import LLMUnavailable, complete_json
 from .models import DimensionScore, Report, Session
@@ -51,6 +53,10 @@ Rules:
 - If a dimension has no supporting evidence, score it 1 and quote the closest attempt.
 - Be fair but not generous. Reserve 4 for genuinely advanced reasoning.
 - Judge the thinking, not the spelling, grammar, or typing. A 6th grader writes casually.
+- Never reward length. A short, sharp question scores higher than a long vague one. Some
+  students type with difficulty; message length is not evidence of thinking.
+- Misspellings, phonetic spellings ("becuz", "seperate"), missing punctuation, and run-on
+  sentences carry no penalty. Read for intent and score the reasoning underneath.
 - Feedback is addressed directly to the student as "you", is specific, and names what to do differently.
 - Write feedback and the explanation in short sentences with everyday words a 6th grader knows.
 - The explanation must describe how the student's thinking moved across the conversation.
@@ -93,11 +99,43 @@ FULL TRANSCRIPT
 Score the student on all five dimensions."""
 
 
+def _mentions(text: str, phrases: tuple[str, ...]) -> bool:
+    """Whole-word phrase match.
+
+    Substring matching is too loose for short function words: "so" fires inside
+    "also", "if" inside "different". Those false positives would hand out credit
+    for filler, which is exactly the verbosity bias this scoring avoids.
+    """
+    return any(re.search(rf"\b{re.escape(phrase)}\b", text) for phrase in phrases)
+
+
+def _best_quote(messages: list[str]) -> str:
+    """Pick the most reasoning-dense message, not merely the longest one.
+
+    The old rule quoted the longest message, which surfaced rambling over
+    insight and made short, sharp answers invisible in the report.
+    """
+    if not messages:
+        return ""
+    markers = ("because", "but", "why", "if", "assume", "prove", "evidence", "?")
+
+    def density(message: str) -> tuple[int, int]:
+        lowered = message.lower()
+        hits = sum(marker in lowered for marker in markers)
+        # Length only breaks ties between equally reasoned messages.
+        return hits, len(message)
+
+    return max(messages, key=density)
+
+
 def _heuristic_scores(session: Session) -> dict:
     """Deterministic fallback so the prototype demos without a token.
 
-    Signals are crude on purpose: they reward length, specificity, question
-    marks, and reference to earlier turns.
+    Signals are crude on purpose, but they are deliberately *not* length-based.
+    Scoring on message length measures typing stamina, not thinking, and
+    penalises students who write less -- notably dyslexic students, who may
+    reason well in few words. Every signal below looks for a marker of
+    reasoning that a short message can satisfy.
     """
     rubric = load_rubric()
     messages = [e.student_message for e in session.exchanges]
@@ -110,21 +148,29 @@ def _heuristic_scores(session: Session) -> dict:
     has_number = any(char.isdigit() for char in joined)
     doubt_words = ("assume", "cause", "correlat", "maybe", "might", "could", "unless", "bias")
     has_doubt = any(word in joined for word in doubt_words)
-    avg_len = sum(len(m.split()) for m in messages) / max(1, len(messages))
+    # Causal/contrastive connectives: the student is relating two ideas, not just naming one.
+    reasoning_words = ("because", "but", "however", "so", "if", "then", "instead", "even though")
+    has_reasoning = _mentions(joined, reasoning_words)
+    # Probing question stems, which mark interrogating the claim rather than accepting it.
+    probe_words = ("why", "how", "what if", "who", "where", "prove", "evidence", "sure")
+    has_probe = _mentions(joined, probe_words)
+    # Proposing a test or a rival explanation is the synthesis move.
+    synthesis_words = ("test", "compare", "control", "another", "other reason", "explain", "instead")
+    has_synthesis = _mentions(joined, synthesis_words)
     builds = len(messages) >= 3
 
     raw = {
-        "question_quality": clamp(1 + int(has_question) + int(avg_len > 12)),
-        "evidence_reasoning": clamp(1 + int(has_number) + int(avg_len > 15)),
+        "question_quality": clamp(1 + int(has_question) + int(has_probe)),
+        "evidence_reasoning": clamp(1 + int(has_number) + int(has_reasoning)),
         "assumption_awareness": clamp(1 + 2 * int(has_doubt)),
         "depth_of_followup": clamp(1 + int(builds) + int(len(messages) >= 4)),
-        "synthesis": clamp(1 + int(avg_len > 18) + int(has_doubt and builds)),
+        "synthesis": clamp(1 + int(has_synthesis) + int(has_doubt and builds)),
     }
 
     dimensions = []
     for dim in rubric["dimensions"]:
         score = raw[dim["id"]]
-        quote = max(messages, key=len) if messages else ""
+        quote = _best_quote(messages)
         dimensions.append(
             {
                 "dimension": dim["id"],
@@ -220,4 +266,5 @@ def build_report(session: Session, content: dict) -> Report:
         dimensions=dimensions,
         next_step=payload["next_step"],
         generated_with_llm=used_llm,
+        accommodations=session.access_profile.labels(),
     )

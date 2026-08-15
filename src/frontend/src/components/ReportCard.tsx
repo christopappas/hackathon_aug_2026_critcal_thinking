@@ -26,6 +26,13 @@ export function ReportCard({ report, onRestart, skin }: Props) {
           {!report.generated_with_llm && (
             <p className="stub-note">Offline scoring mode - add a token for LLM scoring.</p>
           )}
+          {report.accommodations?.length > 0 && (
+            <p className="accommodations">
+              Accommodations in effect: {report.accommodations.join(", ")}. These change how the
+              content was presented, not what was asked of the student. Spelling and message
+              length are never scored.
+            </p>
+          )}
         </div>
         <Sockrates
           className="report-mascot"

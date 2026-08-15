@@ -1,11 +1,14 @@
 import type { SockSkin } from "../sockSkin";
-import type { ContentSummary } from "../types";
+import type { AccessProfile, ContentSummary } from "../types";
+import { AccessSettings } from "./AccessSettings";
 import { SockDrawer } from "./SockDrawer";
 import { Sockrates } from "./Sockrates";
 
 interface Props {
   items: ContentSummary[];
   onPick: (id: string) => void;
+  profile: AccessProfile;
+  onProfileChange: (profile: AccessProfile) => void;
   skin: SockSkin;
   onSkinChange: (skin: SockSkin) => void;
 }
@@ -20,7 +23,7 @@ const ICONS: Record<string, string> = {
   "study-music": "🎧",
 };
 
-export function ContentPicker({ items, onPick, skin, onSkinChange }: Props) {
+export function ContentPicker({ items, onPick, profile, onProfileChange, skin, onSkinChange }: Props) {
   return (
     <div className="picker">
       <header className="picker-head">
@@ -50,6 +53,8 @@ export function ContentPicker({ items, onPick, skin, onSkinChange }: Props) {
           </button>
         ))}
       </div>
+
+      <AccessSettings profile={profile} onChange={onProfileChange} />
     </div>
   );
 }

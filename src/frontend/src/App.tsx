@@ -16,9 +16,29 @@ import { ExplorePopover } from "./components/ExplorePopover";
 import { ReportCard } from "./components/ReportCard";
 import { loadSkin, saveSkin } from "./sockSkin";
 import type { SockSkin } from "./sockSkin";
-import type { Anchor, ContentSummary, ExploreMessage, Message, Report, SessionResponse } from "./types";
+import type {
+  AccessProfile,
+  Anchor,
+  ContentSummary,
+  ExploreMessage,
+  Message,
+  Report,
+  SessionResponse,
+} from "./types";
 
 type Phase = "loading" | "picking" | "chatting" | "celebrating" | "report" | "error";
+
+const PROFILE_KEY = "think-it-through:access-profile";
+
+function loadProfile(): AccessProfile {
+  try {
+    const stored = localStorage.getItem(PROFILE_KEY);
+    if (stored) return JSON.parse(stored) as AccessProfile;
+  } catch {
+    // Ignore unreadable storage; the default profile is a safe fallback.
+  }
+  return { dyslexia_support: false };
+}
 
 interface ExplorePopupState {
   position: { x: number; y: number };
@@ -34,6 +54,7 @@ export default function App() {
   const [phase, setPhase] = useState<Phase>("loading");
   const [catalog, setCatalog] = useState<ContentSummary[]>([]);
   const [session, setSession] = useState<SessionResponse | null>(null);
+  const [profile, setProfile] = useState<AccessProfile>(loadProfile);
   const [messages, setMessages] = useState<Message[]>([]);
   const [anchor, setAnchor] = useState<Anchor | null>(null);
   const [turnsUsed, setTurnsUsed] = useState(0);
@@ -75,10 +96,21 @@ export default function App() {
     void loadCatalog();
   }, [loadCatalog]);
 
+  // Drive styling from one attribute on <html> so every screen -- picker, chat,
+  // completion, report -- adapts without each component knowing about the profile.
+  useEffect(() => {
+    document.documentElement.dataset.access = profile.dyslexia_support ? "dyslexia" : "";
+    try {
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+    } catch {
+      // A student can still work through the session without a saved preference.
+    }
+  }, [profile]);
+
   async function pickContent(contentId: string) {
     setPhase("loading");
     try {
-      setSession(await startSession(contentId));
+      setSession(await startSession(contentId, profile));
       setMessages([]);
       setAnchor(null);
       setTurnsUsed(0);
@@ -200,6 +232,8 @@ export default function App() {
       <ContentPicker
         items={catalog}
         onPick={(id) => void pickContent(id)}
+        profile={profile}
+        onProfileChange={setProfile}
         skin={skin}
         onSkinChange={chooseSkin}
       />
@@ -218,6 +252,7 @@ export default function App() {
         onAnchor={setAnchor}
         onExplore={(clickedAnchor, position) => void handleExplore(clickedAnchor, position)}
         disabled={busy}
+        dyslexiaMode={session.access_profile?.dyslexia_support}
       />
       <ChatPanel
         messages={messages}
