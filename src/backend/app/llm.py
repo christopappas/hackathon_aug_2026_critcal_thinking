@@ -2,12 +2,28 @@ from __future__ import annotations
 
 import json
 import logging
+from contextvars import ContextVar
 
 from . import config
 
 logger = logging.getLogger(__name__)
 
 _client = None
+
+_force_stub: ContextVar[bool] = ContextVar("force_stub", default=False)
+"""Per-request switch to the scripted path, set from the session's llm_mode.
+
+A ContextVar rather than a module global because the choice belongs to one
+session: two students demoing side by side must not flip each other's mode.
+It is also why this isn't threaded through as an argument -- explore.py and
+generator.py never receive a Session, so a parameter would have to be pushed
+through several unrelated signatures to reach the one place that reads it.
+"""
+
+
+def set_stub_mode(force: bool) -> None:
+    """Force the stub path for the current request only."""
+    _force_stub.set(force)
 
 
 def _get_client():
@@ -41,6 +57,9 @@ def complete_json(
     dimension with an evidence quote, and free-text parsing fails under demo
     conditions in ways that are hard to recover from.
     """
+    if _force_stub.get():
+        raise LLMUnavailable("stub mode selected for this session")
+
     if not config.llm_enabled():
         raise LLMUnavailable("no LLM configured: set GITHUB_TOKEN or point LLM_BASE_URL at a local server")
 

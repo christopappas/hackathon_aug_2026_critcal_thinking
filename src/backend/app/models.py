@@ -6,6 +6,14 @@ from pydantic import BaseModel, Field, model_validator
 
 AnchorKind = Literal["text", "region", "temporal"]
 
+LlmMode = Literal["live", "stub"]
+"""Which brain answers this session.
+
+'stub' forces the scripted fallback even when a provider is configured, so the
+offline path can be demonstrated (and demoed against) on purpose rather than
+only by accident when a provider rate-limits.
+"""
+
 
 class Anchor(BaseModel):
     """A pointer from a student message to a specific part of the content."""
@@ -103,6 +111,7 @@ class Session(BaseModel):
     exchanges: list[Exchange] = Field(default_factory=list)
     report: Report | None = None
     access_profile: AccessProfile = Field(default_factory=AccessProfile)
+    llm_mode: LlmMode = "live"
     pending_hints: int = 0
     """Hints requested for the in-progress turn; folded into the next Exchange, then reset."""
     explore: ExploreThread | None = None
@@ -130,6 +139,7 @@ class ContentSummary(BaseModel):
 class SessionRequest(BaseModel):
     content_id: str | None = None
     access_profile: AccessProfile | None = None
+    llm_mode: LlmMode = "live"
 
 
 class SessionResponse(BaseModel):
@@ -140,6 +150,18 @@ class SessionResponse(BaseModel):
     opening_prompt: str
     llm_enabled: bool
     access_profile: AccessProfile = Field(default_factory=AccessProfile)
+    llm_mode: LlmMode = "live"
+
+
+class LlmModeRequest(BaseModel):
+    llm_mode: LlmMode
+
+
+class LlmModeResponse(BaseModel):
+    llm_mode: LlmMode
+    llm_enabled: bool
+    """Whether 'live' can actually reach a provider; false means the UI should not offer it."""
+    model: str
 
 
 class ChatRequest(BaseModel):

@@ -8,7 +8,10 @@ import type {
   GenerateRequest,
   GenerateResponse,
   GeneratedContent,
+  HealthResponse,
   HintResponse,
+  LlmMode,
+  LlmModeResponse,
   Report,
   SessionResponse,
   TeacherContentRow,
@@ -31,10 +34,26 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
 export const listContent = () => request<ContentSummary[]>("/content");
 
-export const startSession = (contentId: string, accessProfile: AccessProfile) =>
+export const fetchHealth = () => request<HealthResponse>("/health");
+
+export const setSessionLlmMode = (sessionId: string, mode: LlmMode) =>
+  request<LlmModeResponse>(`/session/${sessionId}/llm-mode`, {
+    method: "PUT",
+    body: JSON.stringify({ llm_mode: mode }),
+  });
+
+export const startSession = (
+  contentId: string,
+  accessProfile: AccessProfile,
+  llmMode: LlmMode,
+) =>
   request<SessionResponse>("/session", {
     method: "POST",
-    body: JSON.stringify({ content_id: contentId, access_profile: accessProfile }),
+    body: JSON.stringify({
+      content_id: contentId,
+      access_profile: accessProfile,
+      llm_mode: llmMode,
+    }),
   });
 
 export const sendMessage = (sessionId: string, message: string, anchor: Anchor | null) =>

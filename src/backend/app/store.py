@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from .models import AccessProfile, Session
+from .models import AccessProfile, LlmMode, Session
 
 _SESSIONS: dict[str, Session] = {}
 
@@ -12,6 +12,7 @@ def create(
     min_turns: int,
     max_turns: int,
     access_profile: AccessProfile | None = None,
+    llm_mode: LlmMode = "live",
 ) -> Session:
     session = Session(
         session_id=uuid.uuid4().hex[:12],
@@ -19,6 +20,7 @@ def create(
         min_turns=min_turns,
         max_turns=max_turns,
         access_profile=access_profile or AccessProfile(),
+        llm_mode=llm_mode,
     )
     _SESSIONS[session.session_id] = session
     return session
