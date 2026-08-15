@@ -43,5 +43,5 @@
       { "t": 24.0, "text": "Principal: These numbers show we need a phone ban." }
     ]
   },
-  "opening_prompt": "Read the story and look at the graph. What is one question you would ask before you believe it? You can highlight a sentence or click a part of the graph to show what you mean."
+  "opening_prompt": "Read the story, then look at the graph. They may not be saying the same thing. What is one question you would ask before you believe it? Highlight a sentence, or click part of the graph to show me what you mean."
 }

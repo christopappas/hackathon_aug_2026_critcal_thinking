@@ -1,4 +1,4 @@
-# Prototype — Think It Through
+# Prototype — Sockrates
 
 A working prototype of the critical-thinking experience described in [ARCHITECTURE.md](./ARCHITECTURE.md).
 

@@ -43,5 +43,5 @@
       { "t": 25.0, "text": "Anchor: So there is life on Mars. Amazing news." }
     ]
   },
-  "opening_prompt": "The headline says life was found. Now read what the scientists really said. What would you ask before you share this story? You can highlight a sentence or click part of the diagram."
+  "opening_prompt": "The headline says life was found on Mars. Now read what the scientists actually said. What would you ask before you shared this story? Highlight a sentence, or click part of the diagram."
 }

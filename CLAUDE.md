@@ -4,9 +4,14 @@ Guidance for Claude Code (claude.ai/code) working in this repository.
 
 ## What this is
 
-**Think It Through** — a hackathon prototype exploring how AI can foster students' critical
+**Sockrates** — a hackathon prototype exploring how AI can foster students' critical
 thinking. A student picks one of five grade-6 content pieces, questions it in a 3–5 turn
 Socratic dialogue, and receives a Bloom's-Taxonomy report card scoring *how they thought*.
+
+The tutor is a sock puppet convinced he is a great Greek philosopher. His persona lives in
+`dialogue.py` (`SYSTEM_PROMPT`, `HINT_SYSTEM_PROMPT`, and both stub lists) and in the
+`opening_prompt` of each content file. **`evaluator.py` is deliberately not in character** —
+see the design invariant on dialogue and scoring being separate calls.
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — system design, requirement IDs (I1–I5, S1–S9), key decisions
 - [PROTOTYPE.md](./PROTOTYPE.md) — how to run it, API surface, how anchoring works
@@ -165,6 +170,15 @@ Preserve these when changing things — each exists for a stated reason:
   spot in the content, one active at a time, never turn-guarded and never read by
   `evaluator.py`. Going deep on a tangent must never help or hurt the graded report — if you
   touch scoring, double check `session.explore` still isn't referenced anywhere in it.
+- **Sockrates' moods are derived, not stored.** `useSockratesMood` keeps state only for the two
+  transient reactions (`talking`, `hinting`); `thinking`/`listening`/`idle` are computed at
+  render from props. Storing them lets a mood drift out of sync with `busy`.
+- **No mascot animation uses `animation-fill-mode`**, and rotation is animated on the element
+  while positional transforms stay on a wrapper `<g>`. The first rule means dropping a mood
+  class always restores the base pose; the second avoids CSS `transform` clobbering the
+  `transform` attribute, which teleports a jaw to the origin on frame one.
+- **Every mood has a static pose** under `prefers-reduced-motion`, because motion is the
+  mascot's only state channel. A blanket `animation: none` would mute it.
 
 ## Adding content
 
