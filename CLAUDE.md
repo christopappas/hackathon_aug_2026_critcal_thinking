@@ -21,6 +21,22 @@ absorbed — do not start new work on `sat`.
 Repo convention: per-person top-level scratch directories (`christopappas/`, `fenichel/`)
 alongside the shared `src/`.
 
+## The punchlist lives in GitHub issues
+
+Open issues are the team's working punchlist for the day — not a long-term backlog. Check it
+before starting work, and treat it as the source of truth for what's in scope:
+
+```bash
+gh issue list --state open
+```
+
+Close issues via the PR that fixes them (`Closes #N` in the PR description) rather than
+resolving them by hand. If you finish something that wasn't filed, file it and close it, so
+the list stays an accurate record of the day.
+
+Because the list moves fast, confirm an issue is still live before acting on it — and read
+the relevant code before assuming a request isn't already implemented.
+
 ## Stack
 
 | Layer | Choice |
