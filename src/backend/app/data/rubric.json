@@ -1,0 +1,81 @@
+{
+  "id": "bloom-critical-thinking-v1",
+  "name": "Critical Thinking Rubric",
+  "basis": "Bloom's Taxonomy",
+  "scale": {
+    "1": "Emerging",
+    "2": "Developing",
+    "3": "Proficient",
+    "4": "Advanced"
+  },
+  "bloom_levels": [
+    "Remember",
+    "Understand",
+    "Apply",
+    "Analyze",
+    "Evaluate",
+    "Create"
+  ],
+  "dimensions": [
+    {
+      "id": "question_quality",
+      "name": "Question Quality",
+      "measures": "Do the student's questions move beyond recall toward analysis?",
+      "bloom_anchor": "Remember to Analyze",
+      "levels": {
+        "1": "Asks only what the content already states.",
+        "2": "Asks for clarification or restatement.",
+        "3": "Asks why or how something happened.",
+        "4": "Asks a question that targets the weakest part of the argument."
+      }
+    },
+    {
+      "id": "evidence_reasoning",
+      "name": "Evidence and Reasoning",
+      "measures": "Are claims tied to specific evidence in the content?",
+      "bloom_anchor": "Understand to Evaluate",
+      "levels": {
+        "1": "Offers opinion with no reference to the content.",
+        "2": "Refers to the content in general terms.",
+        "3": "Cites a specific number, passage, or visual detail.",
+        "4": "Asks whether that evidence really proves the claim."
+      }
+    },
+    {
+      "id": "assumption_awareness",
+      "name": "Assumption Awareness",
+      "measures": "Does the student surface unstated assumptions?",
+      "bloom_anchor": "Analyze",
+      "levels": {
+        "1": "Accepts the conclusion as given.",
+        "2": "Expresses vague doubt without naming the assumption.",
+        "3": "Names something the argument assumed without proving it, such as saying one thing caused the other.",
+        "4": "Names the assumption and says what evidence would test it."
+      }
+    },
+    {
+      "id": "depth_of_followup",
+      "name": "Depth of Follow-up",
+      "measures": "Does each turn build on the previous exchange rather than restart?",
+      "bloom_anchor": "Analyze to Evaluate",
+      "levels": {
+        "1": "Each message is unrelated to the last.",
+        "2": "Repeats or lightly rephrases an earlier point.",
+        "3": "Extends the previous idea with a new angle.",
+        "4": "Revises an earlier position in light of new reasoning."
+      }
+    },
+    {
+      "id": "synthesis",
+      "name": "Synthesis",
+      "measures": "Does the student form a new position or connection?",
+      "bloom_anchor": "Evaluate to Create",
+      "levels": {
+        "1": "No position formed.",
+        "2": "Restates the content's conclusion as their own.",
+        "3": "States a qualified position of their own.",
+        "4": "Proposes an alternative explanation or a way to test the claim."
+      }
+    }
+  ]
+}

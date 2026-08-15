@@ -1,0 +1,47 @@
+{
+  "id": "ai-code-review",
+  "order": 4,
+  "grade_level": 6,
+  "title": "The AI Wrote This Code. Is It Right?",
+  "subject": "Computer science",
+  "blurb": "A chatbot wrote code to average test scores and said it works. Does it?",
+  "media_type": "mixed",
+  "intro": "A student asked an AI chatbot to write code that finds the average of some test scores. Here is what the AI gave back.",
+  "body": "def average_score(scores):\n    total = 0\n    for i in range(1, len(scores)):\n        total = total + scores[i]\n    return total / len(scores)\n\nIn plain English, this code says: start the total at 0, go through the list of scores and add each one to the total, then divide the total by how many scores there are. One thing to know: in this language, counting starts at 0, not 1. So the first score is number 0.\n\nThe AI said: \"This code is correct. It will work for any list of scores.\" The student tested it one time with the scores 80, 90, and 100. It printed 63.3, and the student wrote it down as the answer.",
+  "chart": {
+    "asset_url": "/static/code-review.svg",
+    "alt": "A diagram tracing the code. The counter starts at 1, so the first score is never added, but the code still divides by all three scores.",
+    "regions": [
+      {
+        "id": "loop-start",
+        "box": [0.05, 0.3, 0.26, 0.28],
+        "caption": "the part where the counter starts at 1 instead of 0"
+      },
+      {
+        "id": "skipped-value",
+        "box": [0.36, 0.12, 0.24, 0.22],
+        "caption": "the first score, 80, which never gets added to the total"
+      },
+      {
+        "id": "divisor",
+        "box": [0.66, 0.3, 0.29, 0.28],
+        "caption": "the divide step, which still divides by all 3 scores"
+      },
+      {
+        "id": "empty-case",
+        "box": [0.05, 0.72, 0.55, 0.2],
+        "caption": "the note that an empty list would make the code crash"
+      }
+    ]
+  },
+  "video": {
+    "asset_url": null,
+    "transcript": [
+      { "t": 0.0, "text": "Student: I asked the AI for the code and it answered right away." },
+      { "t": 7.0, "text": "Student: It said the code was correct, so I did not really check it." },
+      { "t": 14.0, "text": "Student: I tested it one time and it printed a number." },
+      { "t": 21.0, "text": "Teacher: What should the average of 80, 90, and 100 be?" }
+    ]
+  },
+  "opening_prompt": "The AI says this code is correct. What is one thing you would check before you trust it? You can highlight a line of the code or click part of the diagram."
+}
