@@ -1,0 +1,50 @@
+{
+  "title": "Do Later Bedtimes Wreck Your Free Throws?",
+  "subject": "Science news",
+  "blurb": "The team newsletter surveyed 60 players and says late bedtimes are ruining shooting percentages.",
+  "icon": "🏀",
+  "grade_level": 6,
+  "intro": "This ran in the basketball team newsletter after the season ended.",
+  "body": "Late nights are costing us games. We asked 60 players on our school teams what time they usually go to bed, then looked up their free throw percentage for the season. Players who said they go to bed after 11 shot an average of 54%. Players who said they go to bed before 9 shot an average of 71%. The graph shows the pattern clearly. If you want to shoot better next season, get to bed earlier. Coach is setting a team bedtime for away trips.",
+  "opening_prompt": "Read the newsletter and look at the graph. What is one question you would ask before you believe it? You can highlight a sentence or click a part of the graph to show what you mean.",
+  "thinking_trap": "The pattern is real but the cause is assumed. Older players stay up later and also take harder shots against tougher opponents, so age could drive both. Bedtimes are also what players said, not what anyone measured, and several late-bedtime players shot better than almost everyone.",
+  "chart_alt": "A dot graph with usual bedtime across the bottom and free throw percentage up the side. The dots slope downward, but several players with late bedtimes still shot above 70 percent.",
+  "transcript": [
+    { "t": 0.0, "text": "Reporter: How did you find out what time everyone goes to bed?" },
+    { "t": 8.0, "text": "Player: They asked us at practice. I just guessed, honestly." },
+    { "t": 17.0, "text": "Reporter: Were the varsity and JV numbers kept separate?" },
+    { "t": 25.0, "text": "Coach: No, we put them all together to get a bigger number." }
+  ],
+  "chart": {
+    "kind": "scatter",
+    "title": "Reported bedtime and free throw percentage",
+    "y_label": "the percents",
+    "y_min": 45,
+    "y_max": 85,
+    "value_suffix": "%",
+    "x_label": "bedtime (hours after 8pm)",
+    "x_min": 0,
+    "x_max": 4,
+    "annotation": "Percents start at 45, not 0.",
+    "footnote": "60 players. Bedtimes were guessed by each player, not measured.",
+    "bars": [],
+    "points": [
+      { "x": 0.3, "y": 74, "outlier": false },
+      { "x": 0.6, "y": 71, "outlier": false },
+      { "x": 0.9, "y": 73, "outlier": false },
+      { "x": 1.2, "y": 68, "outlier": false },
+      { "x": 1.5, "y": 70, "outlier": false },
+      { "x": 1.8, "y": 65, "outlier": false },
+      { "x": 2.1, "y": 63, "outlier": false },
+      { "x": 2.4, "y": 66, "outlier": false },
+      { "x": 2.7, "y": 60, "outlier": false },
+      { "x": 3.0, "y": 58, "outlier": false },
+      { "x": 3.3, "y": 61, "outlier": false },
+      { "x": 3.6, "y": 55, "outlier": false },
+      { "x": 3.9, "y": 53, "outlier": false },
+      { "x": 2.9, "y": 79, "outlier": true },
+      { "x": 3.4, "y": 76, "outlier": true },
+      { "x": 3.8, "y": 78, "outlier": true }
+    ]
+  }
+}

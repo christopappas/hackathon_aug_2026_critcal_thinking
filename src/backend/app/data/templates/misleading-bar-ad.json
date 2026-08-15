@@ -1,0 +1,45 @@
+{
+  "id": "misleading-bar-ad",
+  "name": "Misleading bar chart ad",
+  "description": "An ad that makes a small difference look enormous by starting the axis high, backed by a tiny sample the advertiser paid for.",
+  "icon": "🥤",
+  "trap": "Truncated axis and a biased sample",
+  "subject": "Ads and media",
+  "chart_kind": "bar",
+  "generation_instructions": "Write a short advertisement for an invented product related to the topic.\n\nThe chart must contain the trap:\n- Set y_min well above 0 (for example 80 when the values are 85 and 90) so a small real gap looks enormous.\n- Give the advertised product a highlight bar and one rival a plain bar. Two or three bars only.\n- Put the sample size and who paid for the study in the footnote, and make the sample small (under 30 people).\n- Set the annotation to a short note pointing at the axis, e.g. \"Axis starts at 80%, not 0%.\"\n\nThe body should read like confident ad copy that never mentions the axis or the sample size. Do not explain the trick anywhere a student can see it. Put the explanation only in thinking_trap.\n\nThe transcript should be four short lines from an interview where someone lets slip how few people were asked.",
+  "offline_draft": {
+    "title": "Students Are Choosing {brand}",
+    "subject": "Ads and media",
+    "blurb": "An ad about {topic} says {brand} beats the leading brand. The bar chart looks convincing.",
+    "intro": "This ad for {topic} ran on a poster outside the school gym.",
+    "body": "{brand} is what students pick when it comes to {topic}. We asked students at our sample tent which one worked better for them. {high}% said {brand} was the one that helped. Only {low}% said the same about the leading brand. Look at the chart and you can see the difference for yourself. The bar for {brand} towers over the competition. If you want the better option this semester, the choice is obvious. Ask for {brand} by name.",
+    "opening_prompt": "Read the ad and look at the chart. What is one question you would ask before you believe it? You can highlight a sentence or click a part of the chart to show what you mean.",
+    "thinking_trap": "Two tricks stack here. The y-axis starts at 80% instead of 0%, so a {gap}-point difference fills most of the chart and makes the bar look about twice as tall. And the sample is {n} students recruited at the company's own tent, paid for by the company, so it is both tiny and biased toward people who already liked {brand}.",
+    "chart_alt": "A bar chart comparing two options. The {brand} bar looks about twice as tall as the leading brand, but the numbers up the side start at 80% instead of 0%.",
+    "icon": "🥤",
+    "chart": {
+      "kind": "bar",
+      "title": "Students who say it worked better for them",
+      "y_label": "the percents",
+      "y_min": 80,
+      "y_max": 100,
+      "value_suffix": "%",
+      "x_label": "",
+      "x_min": 0,
+      "x_max": 1,
+      "annotation": "Axis starts at 80%, not 0%.",
+      "footnote": "Based on {n} students at the {brand} tent. Funded by {brand}.",
+      "bars": [
+        { "label": "{brand}", "sublabel": null, "value": 90, "value_label": "90%", "highlight": true },
+        { "label": "Leading brand", "sublabel": null, "value": 85, "value_label": "85%", "highlight": false }
+      ],
+      "points": []
+    },
+    "transcript": [
+      { "t": 0.0, "text": "Interviewer: How did you pick the students for the survey?" },
+      { "t": 7.0, "text": "Rep: We asked whoever stopped by our tent for a free sample." },
+      { "t": 15.0, "text": "Interviewer: And how many people was that?" },
+      { "t": 22.0, "text": "Rep: {n}. But they were really enthusiastic." }
+    ]
+  }
+}

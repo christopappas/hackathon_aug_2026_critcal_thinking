@@ -102,6 +102,8 @@ class ContentSummary(BaseModel):
     subject: str = ""
     blurb: str = ""
     grade_level: int | None = None
+    icon: str | None = None
+    generated: bool = False
 
 
 class SessionRequest(BaseModel):
@@ -164,3 +166,52 @@ class ExploreMessageResponse(BaseModel):
     reply: str
     messages_used: int
     max_messages: int
+
+
+class Template(BaseModel):
+    """A starting point a teacher edits before generating. Seeds are read-only."""
+
+    id: str
+    name: str
+    description: str = ""
+    icon: str = "📝"
+    trap: str = ""
+    subject: str = ""
+    chart_kind: Literal["bar", "scatter"] = "bar"
+    generation_instructions: str = ""
+    offline_draft: dict = Field(default_factory=dict)
+    builtin: bool = False
+
+
+class GenerateRequest(BaseModel):
+    template_id: str
+    topic: str = Field(min_length=1, max_length=200)
+    extra_instructions: str = Field(default="", max_length=2000)
+    source_text: str = Field(default="", max_length=6000)
+    grade_level: int = Field(default=6, ge=1, le=12)
+    generation_instructions: str | None = Field(default=None, max_length=4000)
+
+
+class GenerateResponse(BaseModel):
+    content: dict
+    warnings: list[str] = Field(default_factory=list)
+    thinking_trap: str = ""
+    generated_with_llm: bool = False
+
+
+class ImportRequest(BaseModel):
+    """A content piece authored outside the app — by hand or by a model elsewhere."""
+
+    payload: dict
+
+
+class ContentPatch(BaseModel):
+    """Fields a teacher may edit after generation. Chart geometry is not among them."""
+
+    title: str | None = None
+    subject: str | None = None
+    blurb: str | None = None
+    intro: str | None = None
+    body: str | None = None
+    opening_prompt: str | None = None
+    icon: str | None = None
