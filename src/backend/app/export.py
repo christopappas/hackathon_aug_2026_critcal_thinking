@@ -23,7 +23,7 @@ def render_pdf(report: Report, content_title: str) -> bytes:
     doc = SimpleDocTemplate(
         buffer,
         pagesize=letter,
-        title=f"Sockrates' Notes - {content_title}",
+        title=f"Sockrates' FOOT-Notes - {content_title}",
         topMargin=0.75 * inch,
         bottomMargin=0.75 * inch,
     )
@@ -41,7 +41,7 @@ def render_pdf(report: Report, content_title: str) -> bytes:
     # especially), so it must be XML-escaped before it reaches Paragraph markup -
     # an unescaped "<" or "&" either mis-renders or breaks the mini-XML parser.
     story = [
-        Paragraph("Sockrates' Notes", styles["Title"]),
+        Paragraph("Sockrates' FOOT-Notes", styles["Title"]),
         Paragraph(escape(content_title), styles["Heading2"]),
         Spacer(1, 6),
         Paragraph(f"Overall score: {report.overall_score} / 10", styles["Heading3"]),
