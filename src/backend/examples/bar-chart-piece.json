@@ -1,0 +1,36 @@
+{
+  "title": "The Reading App That Made Us Winners",
+  "subject": "Data and graphs",
+  "blurb": "A district newsletter says the new reading app doubled the number of students hitting their goal.",
+  "icon": "📚",
+  "grade_level": 6,
+  "intro": "This went out in the district newsletter in May.",
+  "body": "The new reading app is working. Last year, 41 out of 100 sixth graders at Ridgeway hit their reading goal. This year, after we rolled out the app, 58 out of 100 hit it. Look at the chart: the bar for this year is more than twice the height of last year's. That is what a real improvement looks like. Every classroom that used the app saw the number go up. We are asking the board to fund the app for all grades next year.",
+  "opening_prompt": "Read the newsletter and look at the chart. What is one question you would ask before you believe it? You can highlight a sentence or click a part of the chart to show what you mean.",
+  "thinking_trap": "Two things to catch. The axis starts at 35, so a 17-point rise is drawn as a bar more than twice as tall — the picture exaggerates the change. And the newsletter compares two different groups of sixth graders a year apart, with no group that skipped the app, so anything else that changed that year could explain the rise just as well.",
+  "chart_alt": "A bar chart comparing last year and this year. This year's bar looks more than twice as tall, but the numbers up the side start at 35 instead of 0.",
+  "transcript": [
+    { "t": 0.0, "text": "Reporter: Did any classes not use the app, so you could compare?" },
+    { "t": 9.0, "text": "Coordinator: No, we rolled it out to every sixth grade class at once." },
+    { "t": 18.0, "text": "Reporter: Was it the same reading test both years?" },
+    { "t": 26.0, "text": "Coordinator: We switched to a new one this year. It is better aligned." }
+  ],
+  "chart": {
+    "kind": "bar",
+    "title": "Sixth graders who hit their reading goal",
+    "y_label": "the counts",
+    "y_min": 35,
+    "y_max": 65,
+    "value_suffix": "",
+    "x_label": "",
+    "x_min": 0,
+    "x_max": 1,
+    "annotation": "Axis starts at 35, not 0.",
+    "footnote": "Two different groups of students, and a different reading test each year.",
+    "bars": [
+      { "label": "Last year", "sublabel": "no app", "value": 41, "value_label": "41", "highlight": false },
+      { "label": "This year", "sublabel": "with app", "value": 58, "value_label": "58", "highlight": true }
+    ],
+    "points": []
+  }
+}

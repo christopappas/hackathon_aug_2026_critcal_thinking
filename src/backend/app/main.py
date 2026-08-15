@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from . import config, dialogue, evaluator, store
+from . import config, dialogue, evaluator, store, teacher
 from .anchors import resolve_anchor
 from .models import (
     ChatRequest,
@@ -31,6 +31,9 @@ app.add_middleware(
 )
 
 app.mount("/static", StaticFiles(directory=config.STATIC_DIR), name="static")
+
+# The teacher surface is a router rather than more routes here, to keep this file readable.
+app.include_router(teacher.router)
 
 
 @app.get("/health")

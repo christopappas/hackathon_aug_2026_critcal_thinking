@@ -1,4 +1,15 @@
-import type { Anchor, ChatResponse, ContentSummary, Report, SessionResponse } from "./types";
+import type {
+  Anchor,
+  ChatResponse,
+  ContentSummary,
+  GenerateRequest,
+  GenerateResponse,
+  GeneratedContent,
+  Report,
+  SessionResponse,
+  TeacherContentRow,
+  Template,
+} from "./types";
 
 const BASE = "/api";
 
@@ -30,3 +41,41 @@ export const sendMessage = (sessionId: string, message: string, anchor: Anchor |
 
 export const fetchReport = (sessionId: string) =>
   request<Report>(`/report/${sessionId}`);
+
+// --- Teacher portal ---
+
+export const listTemplates = () => request<Template[]>("/teacher/templates");
+
+export const generateContent = (body: GenerateRequest) =>
+  request<GenerateResponse>("/teacher/generate", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+
+export const importContent = (payload: unknown) =>
+  request<GenerateResponse>("/teacher/import", {
+    method: "POST",
+    body: JSON.stringify({ payload }),
+  });
+
+export const fetchImportSchema = () => request<{ shape: string }>("/teacher/import/schema");
+
+export const listTeacherContent = () => request<TeacherContentRow[]>("/teacher/content");
+
+export const getTeacherContent = (id: string) =>
+  request<GeneratedContent>(`/teacher/content/${id}`);
+
+export const publishContent = (id: string) =>
+  request<{ review_status: string }>(`/teacher/content/${id}/publish`, { method: "POST" });
+
+export const unpublishContent = (id: string) =>
+  request<{ review_status: string }>(`/teacher/content/${id}/unpublish`, { method: "POST" });
+
+export const updateContent = (id: string, patch: Record<string, string>) =>
+  request<GeneratedContent>(`/teacher/content/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(patch),
+  });
+
+export const deleteContent = (id: string) =>
+  request<{ deleted: string }>(`/teacher/content/${id}`, { method: "DELETE" });

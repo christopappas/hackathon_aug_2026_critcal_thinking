@@ -5,6 +5,8 @@ interface Props {
   onPick: (id: string) => void;
 }
 
+// Icons for the five built-in pieces. Generated content carries its own icon field,
+// which takes precedence, so new pieces do not all show up as a question mark.
 const ICONS: Record<string, string> = {
   "screen-time-scores": "📱",
   "energy-drink-ad": "🥤",
@@ -24,7 +26,7 @@ export function ContentPicker({ items, onPick }: Props) {
       <div className="picker-grid">
         {items.map((item) => (
           <button key={item.id} type="button" className="picker-card" onClick={() => onPick(item.id)}>
-            <span className="picker-icon">{ICONS[item.id] ?? "❓"}</span>
+            <span className="picker-icon">{item.icon ?? ICONS[item.id] ?? "❓"}</span>
             <span className="picker-subject">{item.subject}</span>
             <h2>{item.title}</h2>
             <p>{item.blurb}</p>

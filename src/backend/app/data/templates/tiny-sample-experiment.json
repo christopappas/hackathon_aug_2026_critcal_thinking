@@ -1,0 +1,45 @@
+{
+  "id": "tiny-sample-experiment",
+  "name": "Science fair experiment, tiny sample",
+  "description": "A student experiment that draws a big conclusion from one or two people, with something else changing at the same time.",
+  "icon": "🎧",
+  "trap": "Sample of one and an uncontrolled variable",
+  "subject": "Science news",
+  "chart_kind": "bar",
+  "generation_instructions": "Write a short science fair project summary about the topic, told by the student who ran it.\n\nThe chart must contain the trap:\n- Two bars comparing the two conditions tested. Start y_min at 0 for this one, so the flaw is the method, not the axis.\n- The footnote must quietly reveal the sample was one or two people, or that the two tests were not the same test.\n- Set the annotation to a short factual note about the method, e.g. \"Both tries: 1 student.\"\n\nThe body should sound proud and certain, generalizing from almost no data to everyone. Somewhere in the body, mention a second thing that changed between the two conditions, without flagging it as a problem. Do not explain the flaw where a student can see it. Put the explanation only in thinking_trap.\n\nThe transcript should be four short lines where the student casually reveals the uncontrolled variable.",
+  "offline_draft": {
+    "title": "Does {topic} Help You Study?",
+    "subject": "Science news",
+    "blurb": "A science fair project says {topic} boosts your score. One student, two tests.",
+    "intro": "This project on {topic} won an honorable mention at the school science fair.",
+    "body": "I wanted to find out if {topic} helps you study. First I studied for a vocabulary quiz the normal way and got a {low}. The next week I tried it and got a {high}. That is a {gap} point jump. The chart shows how big the difference was. It clearly helps your brain focus and remember more words. Schools should let students do this during study hall, because the data shows it works.",
+    "opening_prompt": "Read the project and look at the chart. What is one question you would ask before you believe it? You can highlight a sentence or click a part of the chart to show what you mean.",
+    "thinking_trap": "The sample is one person taking two different quizzes a week apart. Any score difference could be the person, the day, or the quiz being easier. The student also studied longer the second time, which the transcript reveals, so {topic} is not the only thing that changed between the two tries.",
+    "chart_alt": "A bar chart with two bars, one for the normal week and one for the week the student tried {topic}. The second bar is taller, but each bar is one student's score on a different quiz.",
+    "icon": "🎧",
+    "chart": {
+      "kind": "bar",
+      "title": "Vocabulary quiz score, before and after",
+      "y_label": "the scores",
+      "y_min": 0,
+      "y_max": 100,
+      "value_suffix": "",
+      "x_label": "",
+      "x_min": 0,
+      "x_max": 1,
+      "annotation": "Both tries: 1 student.",
+      "footnote": "One student, two different quizzes, taken one week apart.",
+      "bars": [
+        { "label": "Normal week", "sublabel": "week 1", "value": 72, "value_label": "72", "highlight": false },
+        { "label": "Tried it", "sublabel": "week 2", "value": 91, "value_label": "91", "highlight": true }
+      ],
+      "points": []
+    },
+    "transcript": [
+      { "t": 0.0, "text": "Judge: Tell me how you ran the experiment." },
+      { "t": 6.0, "text": "Student: I studied the normal way one week and tried {topic} the next." },
+      { "t": 14.0, "text": "Judge: Was anything else different the second week?" },
+      { "t": 21.0, "text": "Student: I guess I studied about an hour longer. I really wanted a good score." }
+    ]
+  }
+}

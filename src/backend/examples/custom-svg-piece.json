@@ -1,0 +1,24 @@
+{
+  "title": "The Playground Vote",
+  "subject": "Everyday claims",
+  "blurb": "A poster says the whole school voted for the new playground design.",
+  "icon": "🗳️",
+  "grade_level": 6,
+  "intro": "This poster went up outside the cafeteria.",
+  "body": "The school has spoken. We asked students to vote between the two playground designs and Design B won by a landslide. The circle shows how the votes came out. Design B is clearly what students want, so that is the one we are building. The vote was open all day Tuesday at the table by the gym doors. Thank you for making your voice heard.",
+  "opening_prompt": "Read the poster and look at the picture. What is one question you would ask before you believe it? You can highlight a sentence or click a part of the picture to show what you mean.",
+  "thinking_trap": "The circle makes the split look like the whole school spoke, but the note admits only 34 students voted out of 600 enrolled. A table by the gym doors at one lunch reaches whoever walked past, not a representative sample.",
+  "chart_alt": "A pie chart with two slices, Design B larger than Design A, and a note saying 34 students voted out of 600 enrolled.",
+  "transcript": [
+    { "t": 0.0, "text": "Reporter: How many students voted in the end?" },
+    { "t": 7.0, "text": "Organizer: Thirty-four. The table was only up at lunch." },
+    { "t": 15.0, "text": "Reporter: Did anyone hear about it who was not near the gym?" },
+    { "t": 23.0, "text": "Organizer: We meant to put it in the announcements. We forgot." }
+  ],
+  "chart_svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 600 400\" font-family=\"Segoe UI, Arial, sans-serif\"><rect width=\"600\" height=\"400\" fill=\"#ffffff\"/><text x=\"300\" y=\"32\" text-anchor=\"middle\" font-size=\"16\" font-weight=\"600\" fill=\"#12263a\">Which playground design do you want?</text><path d=\"M300 215 L300 95 A120 120 0 1 1 217 302 Z\" fill=\"#ef476f\"/><path d=\"M300 215 L217 302 A120 120 0 0 1 300 95 Z\" fill=\"#9aa7b5\"/><text x=\"415\" y=\"175\" font-size=\"14\" font-weight=\"700\" fill=\"#ef476f\">Design B</text><text x=\"150\" y=\"265\" font-size=\"14\" font-weight=\"700\" fill=\"#5b6b7c\">Design A</text><text x=\"30\" y=\"378\" font-size=\"11\" fill=\"#5b6b7c\">34 students voted out of 600 enrolled. Table by the gym doors, Tuesday lunch only.</text></svg>",
+  "chart_regions": [
+    { "id": "design-b-slice", "box": [0.42, 0.22, 0.34, 0.44], "caption": "the big slice for Design B" },
+    { "id": "design-a-slice", "box": [0.3, 0.46, 0.16, 0.3], "caption": "the smaller slice for Design A" },
+    { "id": "vote-count", "box": [0.04, 0.9, 0.76, 0.08], "caption": "the note saying only 34 students out of 600 voted" }
+  ]
+}

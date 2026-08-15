@@ -4,6 +4,11 @@ __pycache__/
 *.pyc
 .env
 
+# Teacher-generated content and its rendered charts. LLM-authored, created at runtime.
+src/backend/app/data/content/generated/
+src/backend/app/data/templates/custom/
+src/backend/app/static/generated/
+
 # Node
 node_modules/
 dist/
