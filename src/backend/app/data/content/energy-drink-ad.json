@@ -1,0 +1,47 @@
+{
+  "id": "energy-drink-ad",
+  "order": 2,
+  "grade_level": 6,
+  "title": "9 Out of 10 Students Prefer ZapFuel",
+  "subject": "Ads and media",
+  "blurb": "An ad says almost every student likes this drink. Then you read the tiny print.",
+  "media_type": "mixed",
+  "intro": "This ad is on a poster in the school hallway.",
+  "body": "ZapFuel is the drink students choose! 9 out of 10 students say ZapFuel helps them focus in class. Our taste test proves that students like ZapFuel better than the other brand. Students who drank ZapFuel before a quiz scored higher than students who drank nothing. Ask your parents for ZapFuel and unlock your focus today! (We asked 10 students at the ZapFuel tent on Sports Day. Each student got a free ZapFuel.)",
+  "chart": {
+    "asset_url": "/static/chart-zapfuel.svg",
+    "alt": "A bar graph comparing ZapFuel to another brand. The side of the graph starts at 80 percent, so a small difference looks huge.",
+    "regions": [
+      {
+        "id": "truncated-axis",
+        "box": [0.04, 0.13, 0.13, 0.73],
+        "caption": "the side of the graph, where the numbers start at 80% instead of 0%"
+      },
+      {
+        "id": "zapfuel-bar",
+        "box": [0.267, 0.5, 0.183, 0.35],
+        "caption": "the tall pink ZapFuel bar showing 90%"
+      },
+      {
+        "id": "rival-bar",
+        "box": [0.567, 0.675, 0.183, 0.175],
+        "caption": "the short gray bar for the other brand, which is actually 85%"
+      },
+      {
+        "id": "sample-note",
+        "box": [0.05, 0.9, 0.7, 0.08],
+        "caption": "the small note saying only 10 students were asked, and ZapFuel paid for the study"
+      }
+    ]
+  },
+  "video": {
+    "asset_url": null,
+    "transcript": [
+      { "t": 0.0, "text": "Host: We gave out free ZapFuel and asked students what they thought." },
+      { "t": 9.0, "text": "Student: It is free, so yeah, I like it." },
+      { "t": 15.0, "text": "Host: Nine of the ten students we asked said it helps them focus." },
+      { "t": 23.0, "text": "Host: This study was paid for by ZapFuel." }
+    ]
+  },
+  "opening_prompt": "This ad wants you to believe ZapFuel helps you focus. What is one question you would ask first? You can highlight part of the ad or click part of the graph."
+}

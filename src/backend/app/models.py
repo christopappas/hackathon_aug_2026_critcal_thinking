@@ -74,6 +74,18 @@ class Session(BaseModel):
         return self.turns_used >= self.min_turns
 
 
+class ContentSummary(BaseModel):
+    id: str
+    title: str
+    subject: str = ""
+    blurb: str = ""
+    grade_level: int | None = None
+
+
+class SessionRequest(BaseModel):
+    content_id: str | None = None
+
+
 class SessionResponse(BaseModel):
     session_id: str
     content: dict

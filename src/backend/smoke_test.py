@@ -57,9 +57,34 @@ def main() -> int:
     rubric = call("GET", "/rubric")
     print(f"rubric dimensions: {[d['id'] for d in rubric['dimensions']]}")
 
-    session = call("POST", "/session")
+    catalog = call("GET", "/content")
+    print(f"content library ({len(catalog)}):")
+    for item in catalog:
+        print(f"  - {item['id']} | grade {item['grade_level']} | {item['title']}")
+    assert len(catalog) >= 2, "expected a content library"
+
+    # Every piece must start a session and serve its asset.
+    for item in catalog:
+        probe = call("POST", "/session", {"content_id": item["id"]})
+        content = probe["content"]
+        assert content["id"] == item["id"], "server returned the wrong content"
+        asset = content["chart"]["asset_url"]
+        with urllib.request.urlopen(f"{BASE}{asset}", timeout=20) as resp:
+            assert resp.status == 200, f"missing asset {asset}"
+        assert content["chart"]["regions"], f"{item['id']} has no clickable regions"
+        print(f"  ok: {item['id']} -> {asset}")
+
+    bad = None
+    try:
+        call("POST", "/session", {"content_id": "does-not-exist"})
+    except urllib.error.HTTPError as exc:
+        bad = exc.code
+    assert bad == 404, f"expected 404 for unknown content, got {bad}"
+    print("unknown content id correctly rejected (404)")
+
+    session = call("POST", "/session", {"content_id": catalog[0]["id"]})
     sid = session["session_id"]
-    print(f"session {sid} | turns {session['min_turns']}-{session['max_turns']} | llm={session['llm_enabled']}")
+    print(f"\nsession {sid} | turns {session['min_turns']}-{session['max_turns']} | llm={session['llm_enabled']}")
 
     completed = False
     for message, anchor in MESSAGES:

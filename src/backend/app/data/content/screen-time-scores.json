@@ -1,0 +1,47 @@
+{
+  "id": "screen-time-scores",
+  "order": 1,
+  "grade_level": 6,
+  "title": "Do Phones Hurt Test Scores?",
+  "subject": "Data and graphs",
+  "blurb": "The school paper says phones are hurting math scores. The graph looks pretty convincing.",
+  "media_type": "mixed",
+  "intro": "This story ran in the school newspaper last week.",
+  "body": "Phones are hurting student learning. We asked 200 students at Lincoln Middle School how many hours a day they use their phones. Students who said more than 4 hours got an average of 71% on the math final. Students who said less than 1 hour got an average of 88%. That is a 17 point difference. The graph makes the pattern clear. Our school should take phones away during the school day so that test scores go up.",
+  "chart": {
+    "asset_url": "/static/chart.svg",
+    "alt": "A dot graph showing hours of phone use across the bottom and math scores up the side. The dots slope downward, but some students with high phone use still scored high.",
+    "regions": [
+      {
+        "id": "trend-line",
+        "box": [0.18, 0.15, 0.7, 0.6],
+        "caption": "the red dotted line that slopes downward across the dots"
+      },
+      {
+        "id": "y-axis",
+        "box": [0.02, 0.1, 0.16, 0.75],
+        "caption": "the side of the graph, where the scores start at 60 instead of 0"
+      },
+      {
+        "id": "outliers",
+        "box": [0.6, 0.12, 0.3, 0.25],
+        "caption": "the group of students who used phones a lot but still scored above 85"
+      },
+      {
+        "id": "sample-note",
+        "box": [0.05, 0.86, 0.6, 0.12],
+        "caption": "the small note saying students guessed their own screen time"
+      }
+    ]
+  },
+  "video": {
+    "asset_url": null,
+    "transcript": [
+      { "t": 0.0, "text": "Reporter: We asked students how long they use their phones each day." },
+      { "t": 8.0, "text": "Student: Maybe two hours? I never actually counted." },
+      { "t": 16.0, "text": "Reporter: We handed out the survey in one class period." },
+      { "t": 24.0, "text": "Principal: These numbers show we need a phone ban." }
+    ]
+  },
+  "opening_prompt": "Read the story and look at the graph. What is one question you would ask before you believe it? You can highlight a sentence or click a part of the graph to show what you mean."
+}

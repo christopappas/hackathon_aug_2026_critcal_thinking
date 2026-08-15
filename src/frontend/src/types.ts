@@ -24,11 +24,22 @@ export interface TranscriptLine {
 export interface Content {
   id: string;
   title: string;
+  subject?: string;
+  blurb?: string;
+  grade_level?: number;
   intro: string;
   body: string;
   chart: { asset_url: string; alt: string; regions: ChartRegion[] };
   video: { asset_url: string | null; transcript: TranscriptLine[] };
   opening_prompt: string;
+}
+
+export interface ContentSummary {
+  id: string;
+  title: string;
+  subject: string;
+  blurb: string;
+  grade_level: number | null;
 }
 
 export interface SessionResponse {

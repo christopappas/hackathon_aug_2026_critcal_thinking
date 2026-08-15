@@ -33,7 +33,7 @@ DIALOGUE_SCHEMA = {
     "additionalProperties": False,
 }
 
-SYSTEM_PROMPT = """You are a Socratic tutor for a middle school student.
+SYSTEM_PROMPT = """You are a Socratic tutor for a 6th grade student, about 11 or 12 years old.
 
 Your job is to deepen the student's thinking about a piece of content. You must NOT:
 - give the student the answer or your own verdict on the content
@@ -45,6 +45,11 @@ You MUST:
 - ask exactly one follow-up question that pushes one level deeper
 - escalate: if they noticed something, ask why it matters or what would test it
 - be warm and curious, never condescending
+
+Write for a 6th grader:
+- short sentences, everyday words, no jargon
+- if you need a term like "sample size" or "cause", explain it in a few plain words
+- never use words a 6th grader would have to look up
 
 If the student anchored their message to part of the content, reference that part directly."""
 
@@ -69,6 +74,7 @@ def build_user_prompt(
     )
     return f"""CONTENT THE STUDENT IS EXAMINING
 Title: {content['title']}
+Reading level: grade {content.get('grade_level', 6)}
 Text: {content['body']}
 Chart: {content['chart']['alt']}
 
@@ -85,11 +91,11 @@ This is exchange {session.turns_used + 1} of at most {session.max_turns}.
 
 
 _STUB_REPLIES = [
-    "That is a sharp place to start. What would you need to know about how those 200 students were chosen before you trusted that 71 percent number?",
-    "You are circling something important. If phones were not the cause, what else could explain why those two groups scored differently?",
-    "Good - you named a competing explanation. What single piece of evidence would tell you which explanation is right?",
-    "Notice the students with high screen time who still scored above 85. How does that group fit the report's conclusion?",
-    "Last one: if you had to write one sentence back to the school newspaper, what would you tell them their evidence actually shows?",
+    "That is a good place to start. What would you need to find out before you believed that part?",
+    "You are onto something. If that is not the real reason, what else could explain it?",
+    "Nice - you named another possible reason. What one piece of evidence would tell you which reason is right?",
+    "Look for anything here that does not fit the pattern. How does that change the conclusion?",
+    "Last one: if you wrote one sentence back to whoever made this, what would you tell them their evidence really shows?",
 ]
 
 

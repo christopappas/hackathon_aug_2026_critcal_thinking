@@ -18,7 +18,7 @@
 |---|-------------|
 | S1 | Student accesses the experience through a web page |
 | S2 | Page displays content: text, images, diagrams, charts, animations, videos, or a combination |
-| S3 | MVP ships exactly one piece of content |
+| S3 | A content library the student picks from; every piece is written for grade 6 |
 | S4 | Interface prompts the student to ask a follow-up question or comment |
 | S5 | Student can optionally **anchor** a question to part of the content — a text passage, an image/chart region, or a point in an animation/video |
 | S6 | System responds with a personalized follow-up designed to deepen thinking |
@@ -234,7 +234,8 @@ The **Anchor Resolver** converts any anchor into a short text excerpt (quoted pa
 
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
-| `POST` | `/session` | Create session, return `session_id` + content (S1, S2, S3) |
+| `GET` | `/content` | List the content library for the picker (S3) |
+| `POST` | `/session` | Create session for a `content_id`, return content (S1, S2, S3) |
 | `POST` | `/chat` | Send message + optional anchor, return follow-up + turn state (S4–S7) |
 | `GET` | `/report/{session_id}` | Return report card: score, explanation, rubric feedback (S9) |
 | `GET` | `/rubric` | Expose rubric for UI display and transparency (I1) |
@@ -293,6 +294,8 @@ OpenAI for many concurrent users — same SDK, only the base URL and key change.
 
 ## MVP Scope
 
-**In:** one hardcoded piece of content (S3), all three anchor kinds, 3–5 turn dialogue, full rubric scoring, report card.
+**In:** a content library of grade-6 pieces (S3), all three anchor kinds, 3–5 turn dialogue,
+full rubric scoring, report card.
 
-**Out:** authentication, multi-content library, teacher dashboard, persistent database (in-memory sessions are sufficient), longitudinal progress tracking.
+**Out:** authentication, teacher dashboard, persistent database (in-memory sessions are
+sufficient), longitudinal progress tracking.

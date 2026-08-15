@@ -85,6 +85,7 @@ button:disabled {
   font-size: 16px;
   user-select: text;
   cursor: text;
+  white-space: pre-wrap;
 }
 
 .body-text::selection,
@@ -577,4 +578,105 @@ button:disabled {
   border-radius: 999px;
   padding: 11px 26px;
   color: var(--muted);
+}
+
+/* Content picker */
+.picker {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 56px 24px 72px;
+}
+
+.picker-head {
+  text-align: center;
+  margin-bottom: 34px;
+}
+
+.picker-head h1 {
+  margin: 0 0 10px;
+  font-size: 34px;
+}
+
+.picker-head p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 18px;
+}
+
+.picker-card {
+  text-align: left;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+}
+
+.picker-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+  box-shadow: 0 10px 24px rgba(47, 111, 235, 0.16);
+}
+
+.picker-icon {
+  font-size: 30px;
+}
+
+.picker-subject {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.picker-card h2 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--ink);
+}
+
+.picker-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+  flex: 1;
+}
+
+.picker-go {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 14px;
+  margin-top: 6px;
+}
+
+.viewer-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.chip {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.chip.grade {
+  background: #e9f9f2;
+  color: #0a8a68;
 }

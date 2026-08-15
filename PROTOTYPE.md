@@ -2,8 +2,21 @@
 
 A working prototype of the critical-thinking experience described in [ARCHITECTURE.md](./ARCHITECTURE.md).
 
-A student reads a flawed school-newspaper report, questions it in a 3–5 turn Socratic dialogue,
+A student picks a piece of content, questions it in a 3–5 turn Socratic dialogue,
 and receives a Bloom's-Taxonomy report card scoring how they thought.
+
+All five content pieces are written for **6th graders** (ages 11–12), and both the tutor and
+the scorer are instructed to read and write at that level.
+
+## Content library
+
+| Piece | Subject | The thinking trap |
+|---|---|---|
+| Do Phones Hurt Test Scores? | Data and graphs | Correlation treated as cause; truncated axis; self-reported data |
+| 9 Out of 10 Students Prefer ZapFuel | Ads and media | Tiny biased sample; funded by the seller; misleading bar scale |
+| Scientists Find Life on Mars | Science news | Headline overstates what the study actually claims |
+| The AI Wrote This Code. Is It Right? | Computer science | AI states wrong code is correct; off-by-one and a crash case |
+| Does Music Make You Study Better? | Science fair | No control; one person, one trial; two things changed at once |
 
 ## Run it
 
@@ -12,7 +25,7 @@ Two terminals. **It runs with no API token** — see Offline mode below.
 ### Backend
 
 ```bash
-cd backend
+cd src/backend
 python -m venv .venv
 .venv\Scripts\activate          # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
@@ -22,7 +35,7 @@ uvicorn app.main:app --reload --port 8000
 ### Frontend
 
 ```bash
-cd frontend
+cd src/frontend
 npm install
 npm run dev
 ```
@@ -32,7 +45,7 @@ Open <http://localhost:5173>. Vite proxies `/api` and `/static` to the backend, 
 ### Enable the LLM
 
 ```bash
-cd backend
+cd src/backend
 copy .env.example .env          # macOS/Linux: cp .env.example .env
 ```
 
@@ -57,12 +70,13 @@ provider rate-limits mid-presentation.
 With the backend running:
 
 ```bash
-cd backend
+cd src/backend
 .venv\Scripts\python smoke_test.py
 ```
 
 This drives a full session — five anchored messages through to the report card — and asserts
-that every rubric dimension is scored with an evidence quote and that a sixth message is
+that every content piece loads with a reachable asset, that an unknown content id is rejected,
+that every rubric dimension is scored with an evidence quote, and that a sixth message is
 rejected with HTTP 409.
 
 ## How anchoring works
@@ -83,7 +97,8 @@ clicking the outlier cluster resolves to the outliers, not the trend line beneat
 
 | Method | Endpoint | Purpose |
 |---|---|---|
-| `POST` | `/session` | Create session, return content |
+| `GET` | `/content` | List the content library for the picker |
+| `POST` | `/session` | Create session for a `content_id`, return content |
 | `POST` | `/chat` | Send message + optional anchor |
 | `GET` | `/report/{id}` | Report card |
 | `GET` | `/rubric` | The rubric, for UI display |
@@ -94,21 +109,33 @@ Interactive docs at <http://localhost:8000/docs>.
 ## Layout
 
 ```
-backend/
-  app/
-    main.py         FastAPI routes + turn guard
-    dialogue.py     Socratic prompt (adaptive follow-ups)
-    evaluator.py    Rubric scoring + report generation
-    anchors.py      Anchor -> text excerpt resolver
-    models.py       Pydantic models
-    data/           content.json, rubric.json
-    static/         chart.svg
-  smoke_test.py     End-to-end check
-frontend/
-  src/
-    App.tsx         Phase machine: chat -> celebrate -> report
-    components/     ContentViewer, ChatPanel, CompletionScreen, ReportCard
+src/
+  backend/
+    app/
+      main.py         FastAPI routes + turn guard
+      dialogue.py     Socratic prompt (adaptive follow-ups)
+      evaluator.py    Rubric scoring + report generation
+      anchors.py      Anchor -> text excerpt resolver
+      config.py       Settings + content library loader
+      models.py       Pydantic models
+      data/
+        rubric.json   Bloom's Taxonomy rubric
+        content/      One JSON file per content piece
+      static/         Chart and diagram SVGs
+    smoke_test.py     End-to-end check
+  frontend/
+    src/
+      App.tsx         Phase machine: pick -> chat -> celebrate -> report
+      components/     ContentPicker, ContentViewer, ChatPanel,
+                      CompletionScreen, ReportCard
 ```
+
+## Adding content
+
+Drop a new JSON file into `src/backend/app/data/content/` and it appears in the picker on the
+next restart — no code change. Copy an existing file for the shape. Required keys: `id`,
+`title`, `body`, `chart` (with `regions`), `video.transcript`, and `opening_prompt`.
+Use `order` to place it in the picker and `grade_level` for the badge.
 
 ## Notes on the design
 

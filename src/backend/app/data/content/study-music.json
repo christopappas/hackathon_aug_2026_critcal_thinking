@@ -1,0 +1,47 @@
+{
+  "id": "study-music",
+  "order": 5,
+  "grade_level": 6,
+  "title": "Does Music Make You Study Better?",
+  "subject": "Science fair",
+  "blurb": "A science fair poster says music makes you smarter. Look at how the test was set up.",
+  "media_type": "mixed",
+  "intro": "This poster won second place at the school science fair.",
+  "body": "MUSIC MAKES YOU SMARTER! My question was: does listening to music help you study? Here is what I did. I studied my spelling words for 20 minutes while listening to my favorite songs. Then I took the spelling test on Friday and got 18 out of 20. Last month I studied without music and got 14 out of 20. That is 4 more words right with music. So music makes your brain work better. Everyone should listen to music while they study.",
+  "chart": {
+    "asset_url": "/static/study-music.svg",
+    "alt": "A simple bar graph comparing one test with music to one test without music, with notes showing the two tests had different words and different study times.",
+    "regions": [
+      {
+        "id": "music-bar",
+        "box": [0.22, 0.28, 0.2, 0.52],
+        "caption": "the bar for the test taken with music, 18 out of 20"
+      },
+      {
+        "id": "no-music-bar",
+        "box": [0.52, 0.44, 0.2, 0.36],
+        "caption": "the bar for the test taken without music, 14 out of 20"
+      },
+      {
+        "id": "one-person",
+        "box": [0.74, 0.2, 0.24, 0.3],
+        "caption": "the note that only one student was tested, one time each"
+      },
+      {
+        "id": "different-tests",
+        "box": [0.04, 0.85, 0.66, 0.13],
+        "caption": "the note that the two tests were a month apart and had different spelling words"
+      }
+    ]
+  },
+  "video": {
+    "asset_url": null,
+    "transcript": [
+      { "t": 0.0, "text": "Student: I love music, so I thought it would help me study." },
+      { "t": 8.0, "text": "Student: The words last month were way harder than this week's words." },
+      { "t": 16.0, "text": "Student: I only tested myself, nobody else." },
+      { "t": 23.0, "text": "Judge: How do you know it was the music that made the difference?" }
+    ]
+  },
+  "opening_prompt": "This poster says music makes you smarter. What would you need to know before you believe it? You can highlight a sentence or click part of the graph."
+}

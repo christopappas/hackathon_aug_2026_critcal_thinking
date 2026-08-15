@@ -1,0 +1,47 @@
+{
+  "id": "mars-headline",
+  "order": 3,
+  "grade_level": 6,
+  "title": "Scientists Find Life on Mars",
+  "subject": "Science news",
+  "blurb": "A big headline says life was found on Mars. The scientists said something smaller.",
+  "media_type": "mixed",
+  "intro": "This headline showed up on a news site last week.",
+  "body": "SCIENTISTS FIND LIFE ON MARS! A NASA spacecraft took pictures of dark streaks on the walls of a Mars crater. The streaks show up when Mars gets warm and fade away when it gets cold. Scientists say salty water could be making the streaks. Every living thing on Earth needs water. So this proves there is life on Mars. But here is what the scientists actually wrote: the streaks \"may be caused by salty water, but dry sand sliding down the slope is also possible.\" One scientist said the pictures show \"a good place to look next.\"",
+  "chart": {
+    "asset_url": "/static/mars-diagram.svg",
+    "alt": "A diagram of a Mars crater wall. Dark streaks appear in summer and fade in winter. Two possible causes are labeled: salty water and dry sand.",
+    "regions": [
+      {
+        "id": "summer-streaks",
+        "box": [0.06, 0.2, 0.26, 0.5],
+        "caption": "the dark streaks on the crater wall in Mars summer"
+      },
+      {
+        "id": "winter-fade",
+        "box": [0.38, 0.2, 0.24, 0.5],
+        "caption": "the same slope in winter, where the streaks have faded"
+      },
+      {
+        "id": "two-explanations",
+        "box": [0.66, 0.15, 0.3, 0.42],
+        "caption": "the two possible causes, salty water and dry sliding sand"
+      },
+      {
+        "id": "evidence-gap",
+        "box": [0.06, 0.76, 0.6, 0.18],
+        "caption": "the note saying no living thing or fossil was actually found"
+      }
+    ]
+  },
+  "video": {
+    "asset_url": null,
+    "transcript": [
+      { "t": 0.0, "text": "Anchor: Scientists say they found life on the red planet." },
+      { "t": 8.0, "text": "Scientist: We saw streaks that might involve salty water." },
+      { "t": 17.0, "text": "Scientist: We did not find any living thing or fossil." },
+      { "t": 25.0, "text": "Anchor: So there is life on Mars. Amazing news." }
+    ]
+  },
+  "opening_prompt": "The headline says life was found. Now read what the scientists really said. What would you ask before you share this story? You can highlight a sentence or click part of the diagram."
+}

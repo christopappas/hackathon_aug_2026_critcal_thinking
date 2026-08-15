@@ -8,7 +8,15 @@ from fastapi.staticfiles import StaticFiles
 
 from . import config, dialogue, evaluator, store
 from .anchors import resolve_anchor
-from .models import ChatRequest, ChatResponse, Exchange, Report, SessionResponse
+from .models import (
+    ChatRequest,
+    ChatResponse,
+    ContentSummary,
+    Exchange,
+    Report,
+    SessionRequest,
+    SessionResponse,
+)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -35,9 +43,18 @@ def get_rubric() -> dict:
     return config.load_rubric()
 
 
+@app.get("/content", response_model=list[ContentSummary])
+def list_content() -> list[ContentSummary]:
+    return [ContentSummary(**item) for item in config.list_content()]
+
+
 @app.post("/session", response_model=SessionResponse)
-def create_session() -> SessionResponse:
-    content = config.load_content()
+def create_session(request: SessionRequest | None = None) -> SessionResponse:
+    content_id = request.content_id if request else None
+    try:
+        content = config.load_content(content_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"unknown content id: {content_id}") from None
     session = store.create(content["id"], config.MIN_TURNS, config.MAX_TURNS)
     return SessionResponse(
         session_id=session.session_id,
@@ -59,7 +76,7 @@ def chat(request: ChatRequest) -> ChatResponse:
     if session.status == "complete" or session.turns_used >= session.max_turns:
         raise HTTPException(status_code=409, detail="conversation already complete")
 
-    content = config.load_content()
+    content = config.load_content(session.content_id)
     excerpt = resolve_anchor(request.anchor, content)
 
     payload, _used_llm = dialogue.generate_followup(session, content, request.message, excerpt)

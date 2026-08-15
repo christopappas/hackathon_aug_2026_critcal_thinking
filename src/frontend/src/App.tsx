@@ -1,15 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
-import { fetchReport, sendMessage, startSession } from "./api";
+import { fetchReport, listContent, sendMessage, startSession } from "./api";
 import { ChatPanel } from "./components/ChatPanel";
 import { CompletionScreen } from "./components/CompletionScreen";
+import { ContentPicker } from "./components/ContentPicker";
 import { ContentViewer } from "./components/ContentViewer";
 import { ReportCard } from "./components/ReportCard";
-import type { Anchor, Message, Report, SessionResponse } from "./types";
+import type { Anchor, ContentSummary, Message, Report, SessionResponse } from "./types";
 
-type Phase = "loading" | "chatting" | "celebrating" | "report" | "error";
+type Phase = "loading" | "picking" | "chatting" | "celebrating" | "report" | "error";
 
 export default function App() {
   const [phase, setPhase] = useState<Phase>("loading");
+  const [catalog, setCatalog] = useState<ContentSummary[]>([]);
   const [session, setSession] = useState<SessionResponse | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [anchor, setAnchor] = useState<Anchor | null>(null);
@@ -18,15 +20,16 @@ export default function App() {
   const [report, setReport] = useState<Report | null>(null);
   const [error, setError] = useState<string>("");
 
-  const boot = useCallback(async () => {
+  const loadCatalog = useCallback(async () => {
     setPhase("loading");
+    setSession(null);
     setMessages([]);
     setAnchor(null);
     setTurnsUsed(0);
     setReport(null);
     try {
-      setSession(await startSession());
-      setPhase("chatting");
+      setCatalog(await listContent());
+      setPhase("picking");
     } catch (err) {
       setError(String(err));
       setPhase("error");
@@ -34,8 +37,22 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    void boot();
-  }, [boot]);
+    void loadCatalog();
+  }, [loadCatalog]);
+
+  async function pickContent(contentId: string) {
+    setPhase("loading");
+    try {
+      setSession(await startSession(contentId));
+      setMessages([]);
+      setAnchor(null);
+      setTurnsUsed(0);
+      setPhase("chatting");
+    } catch (err) {
+      setError(String(err));
+      setPhase("error");
+    }
+  }
 
   async function handleSend(text: string) {
     if (!session) return;
@@ -69,15 +86,17 @@ export default function App() {
     return (
       <div className="center error">
         <p>{error}</p>
-        <button type="button" onClick={() => void boot()}>
+        <button type="button" onClick={() => void loadCatalog()}>
           Retry
         </button>
       </div>
     );
+  if (phase === "picking")
+    return <ContentPicker items={catalog} onPick={(id) => void pickContent(id)} />;
   if (phase === "celebrating")
     return <CompletionScreen onReveal={() => setPhase("report")} />;
   if (phase === "report" && report)
-    return <ReportCard report={report} onRestart={() => void boot()} />;
+    return <ReportCard report={report} onRestart={() => void loadCatalog()} />;
   if (!session) return null;
 
   return (

@@ -33,6 +33,10 @@ export function ContentViewer({ content, activeAnchor, onAnchor, disabled }: Pro
     <section className="content-viewer">
       <p className="eyebrow">{content.intro}</p>
       <h1>{content.title}</h1>
+      <div className="viewer-meta">
+        {content.subject && <span className="chip">{content.subject}</span>}
+        {content.grade_level && <span className="chip grade">Grade {content.grade_level}</span>}
+      </div>
 
       <p className="body-text" onMouseUp={handleTextSelect}>
         {content.body}

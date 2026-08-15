@@ -38,7 +38,7 @@
         "1": "Offers opinion with no reference to the content.",
         "2": "Refers to the content in general terms.",
         "3": "Cites a specific number, passage, or visual detail.",
-        "4": "Weighs whether the cited evidence actually supports the claim."
+        "4": "Asks whether that evidence really proves the claim."
       }
     },
     {
@@ -49,8 +49,8 @@
       "levels": {
         "1": "Accepts the conclusion as given.",
         "2": "Expresses vague doubt without naming the assumption.",
-        "3": "Names an unstated assumption such as correlation implying causation.",
-        "4": "Names the assumption and explains what evidence would test it."
+        "3": "Names something the argument assumed without proving it, such as saying one thing caused the other.",
+        "4": "Names the assumption and says what evidence would test it."
       }
     },
     {

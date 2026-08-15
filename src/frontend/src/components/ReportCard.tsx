@@ -62,7 +62,7 @@ export function ReportCard({ report, onRestart }: Props) {
       </section>
 
       <button type="button" className="restart" onClick={onRestart}>
-        Start over
+        Try another one
       </button>
     </div>
   );
