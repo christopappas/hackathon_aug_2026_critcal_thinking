@@ -925,10 +925,11 @@ button:disabled {
   line-height: 1.35;
 }
 
-/* Reduce animation, which competes for attention while decoding text. */
-:root[data-access="dyslexia"] * {
-  animation-duration: 0.001s !important;
-}
+/* Animation competes for attention while decoding text, so this mode also asks for
+   reduced motion -- but it does so through `data-motion` (set in motion.ts), not
+   through rules of its own. An earlier blanket `animation-duration: 0.001s` here
+   did not stop animation; it replayed every keyframe about a thousand times a
+   second, which read as a vibrating mascot. See the Reduced motion block below. */
 
 /* --- Educator settings panel --- */
 
@@ -1280,11 +1281,15 @@ button:disabled {
    frame that read as its visual peak. Sockrates keeps a distinct silhouette per
    mood without moving at all.
 
+   Keyed on `data-motion`, not on the media query directly, because two things ask
+   for calmer motion: the OS preference and the dyslexia reading accommodation.
+   motion.ts resolves both to this one attribute so the two can never drift apart.
+
    One gap CSS cannot close: ChatPanel calls scrollIntoView({ behavior: "smooth" }),
-   which no media query reaches. That is handled in the component.
+   which no stylesheet reaches. That is handled in the component.
 --------------------------------------------------------------------------- */
 
-@media (prefers-reduced-motion: reduce) {
+:root[data-motion="reduced"] {
   /* 40 elements falling a full viewport height while rotating 520deg is the one
      genuine vestibular trigger here. Keep the celebration, drop the travel. */
   .confetti span {
