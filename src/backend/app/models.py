@@ -56,6 +56,23 @@ class Report(BaseModel):
     generated_with_llm: bool
 
 
+class ExploreMessage(BaseModel):
+    student_message: str
+    llm_response: str
+
+
+class ExploreThread(BaseModel):
+    """An open-ended, unscored discussion anchored to one spot in the content.
+
+    Deliberately outside the graded Session.exchanges / rubric transcript: this
+    is where a student can go deep on something that caught their eye without
+    it counting toward, or being capped by, the 3-5 turn graded dialogue.
+    """
+
+    anchor_excerpt: str | None = None
+    messages: list[ExploreMessage] = Field(default_factory=list)
+
+
 class Session(BaseModel):
     session_id: str
     content_id: str
@@ -67,6 +84,8 @@ class Session(BaseModel):
     report: Report | None = None
     pending_hints: int = 0
     """Hints requested for the in-progress turn; folded into the next Exchange, then reset."""
+    explore: ExploreThread | None = None
+    """The one active explore popover, if any. Starting a new one replaces this outright."""
 
     @property
     def turns_remaining(self) -> int:
@@ -123,3 +142,25 @@ class HintResponse(BaseModel):
     hint_level: int
     hints_used_this_turn: int
     max_hints_per_turn: int
+
+
+class ExploreStartRequest(BaseModel):
+    session_id: str
+    anchor: Anchor
+
+
+class ExploreStartResponse(BaseModel):
+    opening: str
+    anchor_excerpt: str | None = None
+    max_messages: int
+
+
+class ExploreMessageRequest(BaseModel):
+    session_id: str
+    message: str = Field(min_length=1, max_length=2000)
+
+
+class ExploreMessageResponse(BaseModel):
+    reply: str
+    messages_used: int
+    max_messages: int

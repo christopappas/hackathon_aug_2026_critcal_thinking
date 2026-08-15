@@ -1,14 +1,17 @@
 import { useRef } from "react";
 import type { Anchor, Content } from "../types";
 
+type Position = { x: number; y: number };
+
 interface Props {
   content: Content;
   activeAnchor: Anchor | null;
   onAnchor: (anchor: Anchor | null) => void;
+  onExplore: (anchor: Anchor, position: Position) => void;
   disabled: boolean;
 }
 
-export function ContentViewer({ content, activeAnchor, onAnchor, disabled }: Props) {
+export function ContentViewer({ content, activeAnchor, onAnchor, onExplore, disabled }: Props) {
   const chartRef = useRef<HTMLDivElement>(null);
 
   function handleTextSelect() {
@@ -17,7 +20,10 @@ export function ContentViewer({ content, activeAnchor, onAnchor, disabled }: Pro
     const quote = selection?.toString().trim() ?? "";
     if (quote.length < 3) return;
     const start = content.body.indexOf(quote);
-    onAnchor({ kind: "text", quote, start, end: start + quote.length });
+    const anchor: Anchor = { kind: "text", quote, start, end: start + quote.length };
+    onAnchor(anchor);
+    const rect = selection!.getRangeAt(0).getBoundingClientRect();
+    onExplore(anchor, { x: rect.left, y: rect.bottom + 8 });
   }
 
   function handleChartClick(event: React.MouseEvent<HTMLDivElement>) {
@@ -26,7 +32,9 @@ export function ContentViewer({ content, activeAnchor, onAnchor, disabled }: Pro
     const x = (event.clientX - rect.left) / rect.width;
     const y = (event.clientY - rect.top) / rect.height;
     // Zero-size box: the backend resolves an anchor by its center point.
-    onAnchor({ kind: "region", box: [x, y, 0, 0] });
+    const anchor: Anchor = { kind: "region", box: [x, y, 0, 0] };
+    onAnchor(anchor);
+    onExplore(anchor, { x: event.clientX, y: event.clientY + 12 });
   }
 
   return (
@@ -63,7 +71,11 @@ export function ContentViewer({ content, activeAnchor, onAnchor, disabled }: Pro
                 type="button"
                 disabled={disabled}
                 className={activeAnchor?.timestamp_s === line.t ? "selected" : ""}
-                onClick={() => onAnchor({ kind: "temporal", timestamp_s: line.t })}
+                onClick={(event) => {
+                  const anchor: Anchor = { kind: "temporal", timestamp_s: line.t };
+                  onAnchor(anchor);
+                  onExplore(anchor, { x: event.clientX, y: event.clientY + 12 });
+                }}
               >
                 <span className="ts">{line.t.toFixed(0)}s</span> {line.text}
               </button>

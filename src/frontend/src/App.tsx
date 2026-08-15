@@ -1,15 +1,34 @@
 import { useCallback, useEffect, useState } from "react";
-import { fetchReport, listContent, requestHint, sendMessage, startSession } from "./api";
+import {
+  fetchReport,
+  listContent,
+  requestHint,
+  sendExploreMessage,
+  sendMessage,
+  startExplore,
+  startSession,
+} from "./api";
 import { ChatPanel } from "./components/ChatPanel";
 import { CompletionScreen } from "./components/CompletionScreen";
 import { ContentPicker } from "./components/ContentPicker";
 import { ContentViewer } from "./components/ContentViewer";
+import { ExplorePopover } from "./components/ExplorePopover";
 import { ReportCard } from "./components/ReportCard";
 import { loadSkin, saveSkin } from "./sockSkin";
 import type { SockSkin } from "./sockSkin";
-import type { Anchor, ContentSummary, Message, Report, SessionResponse } from "./types";
+import type { Anchor, ContentSummary, ExploreMessage, Message, Report, SessionResponse } from "./types";
 
 type Phase = "loading" | "picking" | "chatting" | "celebrating" | "report" | "error";
+
+interface ExplorePopupState {
+  position: { x: number; y: number };
+  anchorLabel: string;
+  messages: ExploreMessage[];
+  starting: boolean;
+  busy: boolean;
+  messagesUsed: number;
+  maxMessages: number;
+}
 
 export default function App() {
   const [phase, setPhase] = useState<Phase>("loading");
@@ -24,6 +43,7 @@ export default function App() {
   const [hints, setHints] = useState<string[]>([]);
   const [maxHintsPerTurn, setMaxHintsPerTurn] = useState(3);
   const [hintBusy, setHintBusy] = useState(false);
+  const [explore, setExplore] = useState<ExplorePopupState | null>(null);
   // Mood stays inside ChatPanel — lifting it would drag `draft` up here and
   // re-render ContentViewer on every keystroke. Only the skin is shared.
   const [skin, setSkin] = useState<SockSkin>(loadSkin);
@@ -41,6 +61,7 @@ export default function App() {
     setTurnsUsed(0);
     setReport(null);
     setHints([]);
+    setExplore(null);
     try {
       setCatalog(await listContent());
       setPhase("picking");
@@ -62,6 +83,7 @@ export default function App() {
       setAnchor(null);
       setTurnsUsed(0);
       setHints([]);
+      setExplore(null);
       setPhase("chatting");
     } catch (err) {
       setError(String(err));
@@ -112,6 +134,57 @@ export default function App() {
     }
   }
 
+  async function handleExplore(clickedAnchor: Anchor, position: { x: number; y: number }) {
+    if (!session) return;
+    // One popover at a time: opening a new spot replaces whatever was open.
+    setExplore({
+      position,
+      anchorLabel: "",
+      messages: [],
+      starting: true,
+      busy: false,
+      messagesUsed: 0,
+      maxMessages: 30,
+    });
+    try {
+      const response = await startExplore(session.session_id, clickedAnchor);
+      setExplore({
+        position,
+        anchorLabel: response.anchor_excerpt ?? "this part of the content",
+        messages: [{ role: "tutor", text: response.opening }],
+        starting: false,
+        busy: false,
+        messagesUsed: 0,
+        maxMessages: response.max_messages,
+      });
+    } catch (err) {
+      setError(String(err));
+      setPhase("error");
+    }
+  }
+
+  async function handleExploreSend(text: string) {
+    if (!session || !explore) return;
+    setExplore((prev) => (prev ? { ...prev, messages: [...prev.messages, { role: "student", text }], busy: true } : prev));
+    try {
+      const response = await sendExploreMessage(session.session_id, text);
+      setExplore((prev) =>
+        prev
+          ? {
+              ...prev,
+              messages: [...prev.messages, { role: "tutor", text: response.reply }],
+              messagesUsed: response.messages_used,
+              maxMessages: response.max_messages,
+              busy: false,
+            }
+          : prev,
+      );
+    } catch (err) {
+      setError(String(err));
+      setPhase("error");
+    }
+  }
+
   if (phase === "loading") return <div className="center">Loading...</div>;
   if (phase === "error")
     return (
@@ -143,6 +216,7 @@ export default function App() {
         content={session.content}
         activeAnchor={anchor}
         onAnchor={setAnchor}
+        onExplore={(clickedAnchor, position) => void handleExplore(clickedAnchor, position)}
         disabled={busy}
       />
       <ChatPanel
@@ -163,6 +237,19 @@ export default function App() {
         skin={skin}
         onSkinChange={chooseSkin}
       />
+      {explore && (
+        <ExplorePopover
+          position={explore.position}
+          anchorLabel={explore.anchorLabel}
+          messages={explore.messages}
+          busy={explore.busy}
+          starting={explore.starting}
+          messagesUsed={explore.messagesUsed}
+          maxMessages={explore.maxMessages}
+          onSend={(text) => void handleExploreSend(text)}
+          onClose={() => setExplore(null)}
+        />
+      )}
     </div>
   );
 }

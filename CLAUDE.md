@@ -128,6 +128,13 @@ Preserve these when changing things — each exists for a stated reason:
   the click.
 - **The rubric is data, not prompt text** (`app/data/rubric.json`), so the UI, evaluator, and
   report generator share one source of truth.
+- **Hints cost score, not turns.** Up to 3 per turn, tracked on the exchange and docked against
+  Question Quality and Evidence & Reasoning deterministically in `evaluator.py` (not just
+  prompted for), so it holds in offline heuristic mode too.
+- **Explore threads (`app/explore.py`) are a separate, unscored channel.** Opened by clicking a
+  spot in the content, one active at a time, never turn-guarded and never read by
+  `evaluator.py`. Going deep on a tangent must never help or hurt the graded report — if you
+  touch scoring, double check `session.explore` still isn't referenced anywhere in it.
 - **Sockrates' moods are derived, not stored.** `useSockratesMood` keeps state only for the two
   transient reactions (`talking`, `hinting`); `thinking`/`listening`/`idle` are computed at
   render from props. Storing them lets a mood drift out of sync with `busy`.
