@@ -102,6 +102,20 @@ export interface AccessProfile {
   dyslexia_support: boolean;
 }
 
+export type LlmMode = "live" | "stub";
+
+export interface LlmModeResponse {
+  llm_mode: LlmMode;
+  llm_enabled: boolean;
+  model: string;
+}
+
+export interface HealthResponse {
+  status: string;
+  llm_enabled: boolean;
+  model: string;
+}
+
 export interface SessionResponse {
   session_id: string;
   content: Content;
@@ -110,6 +124,7 @@ export interface SessionResponse {
   opening_prompt: string;
   llm_enabled: boolean;
   access_profile: AccessProfile;
+  llm_mode: LlmMode;
 }
 
 export interface ChatResponse {
