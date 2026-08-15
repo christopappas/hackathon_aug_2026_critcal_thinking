@@ -6,13 +6,19 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from . import config, dialogue, evaluator, store
+from . import config, dialogue, evaluator, explore, store
 from .anchors import resolve_anchor
 from .models import (
     ChatRequest,
     ChatResponse,
     ContentSummary,
     Exchange,
+    ExploreMessage,
+    ExploreMessageRequest,
+    ExploreMessageResponse,
+    ExploreStartRequest,
+    ExploreStartResponse,
+    ExploreThread,
     HintRequest,
     HintResponse,
     Report,
@@ -147,6 +153,59 @@ def chat(request: ChatRequest) -> ChatResponse:
         status=session.status,
         is_complete=session.status == "complete",
         anchor_excerpt=excerpt,
+    )
+
+
+@app.post("/explore/start", response_model=ExploreStartResponse)
+def explore_start(request: ExploreStartRequest) -> ExploreStartResponse:
+    """Open a fresh, unscored discussion anchored to one clicked spot.
+
+    Deliberately not turn-guarded like /chat: this is outside the graded
+    dialogue by design. One thread is active per session; starting a new one
+    replaces whatever was there before (the popover UI shows one at a time).
+    """
+    session = store.get(request.session_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="session not found")
+
+    content = config.load_content(session.content_id)
+    excerpt = resolve_anchor(request.anchor, content)
+
+    opening, _used_llm = explore.generate_opening(content, excerpt)
+
+    session.explore = ExploreThread(anchor_excerpt=excerpt, messages=[])
+    store.save(session)
+
+    return ExploreStartResponse(
+        opening=opening,
+        anchor_excerpt=excerpt,
+        max_messages=config.MAX_EXPLORE_MESSAGES,
+    )
+
+
+@app.post("/explore/message", response_model=ExploreMessageResponse)
+def explore_message(request: ExploreMessageRequest) -> ExploreMessageResponse:
+    session = store.get(request.session_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="session not found")
+    if session.explore is None:
+        raise HTTPException(status_code=409, detail="no explore thread started for this session")
+    # A generous anti-abuse ceiling, not a pedagogical limit - see MAX_EXPLORE_MESSAGES.
+    if len(session.explore.messages) >= config.MAX_EXPLORE_MESSAGES:
+        raise HTTPException(status_code=409, detail="explore thread has reached its message limit")
+
+    content = config.load_content(session.content_id)
+    reply, _used_llm = explore.generate_reply(session.explore, content, request.message)
+
+    session.explore.messages.append(
+        ExploreMessage(student_message=request.message, llm_response=reply)
+    )
+    store.save(session)
+
+    return ExploreMessageResponse(
+        reply=reply,
+        messages_used=len(session.explore.messages),
+        max_messages=config.MAX_EXPLORE_MESSAGES,
     )
 
 

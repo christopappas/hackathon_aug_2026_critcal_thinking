@@ -149,6 +149,26 @@ def main() -> int:
     assert reply["hint_level"] == 1, "hint budget should reset on the next turn"
     print("  hint budget reset after sending a message (turn 2 starts at hint 1)")
 
+    # Explore popover: an open-ended, unscored side discussion anchored to one spot.
+    # Independent of the graded dialogue, so it's exercised on the already-completed session.
+    print(f"\n--- explore popover (session {sid}) ---")
+    start = call(
+        "POST",
+        "/explore/start",
+        {"session_id": sid, "anchor": {"kind": "text", "quote": "Our survey of 200 students"}},
+    )
+    assert start["opening"], "explore opening was empty"
+    print(f"  opened on: {start['anchor_excerpt']}")
+    print(f"  opening: {start['opening'][:80]}")
+
+    explore_reply = call("POST", "/explore/message", {"session_id": sid, "message": "Why 200 students?"})
+    assert explore_reply["messages_used"] == 1
+    print(f"  reply: {explore_reply['reply'][:80]}")
+
+    report_after_explore = call("GET", f"/report/{sid}")
+    assert report_after_explore == report, "explore thread must never change the graded report"
+    print("  report card unchanged by the explore thread (unscored, as designed)")
+
     print("\nALL CHECKS PASSED")
     return 0
 

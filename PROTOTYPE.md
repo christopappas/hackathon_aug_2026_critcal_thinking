@@ -101,6 +101,8 @@ clicking the outlier cluster resolves to the outliers, not the trend line beneat
 | `POST` | `/session` | Create session for a `content_id`, return content |
 | `POST` | `/chat` | Send message + optional anchor |
 | `POST` | `/hint` | Request the next hint for the current turn (up to 3, then 409) |
+| `POST` | `/explore/start` | Open an unscored discussion anchored to a clicked spot, replacing any thread already open |
+| `POST` | `/explore/message` | Continue the active explore thread (capped at 30 messages as an anti-abuse ceiling, not a turn limit) |
 | `GET` | `/report/{id}` | Report card |
 | `GET` | `/rubric` | The rubric, for UI display |
 | `GET` | `/health` | Status + whether the LLM is live |
@@ -154,3 +156,8 @@ Use `order` to place it in the picker and `grade_level` for the badge.
   look, level 3 = close to the issue), tracked on the exchange and folded into scoring: 2+
   hints in a session docks Question Quality and Evidence & Reasoning, enforced deterministically
   in `evaluator.py` so it holds even in offline heuristic mode.
+- **Explore threads are a separate, unscored channel.** Clicking a sentence, chart region, or
+  transcript line opens an open-ended discussion about just that spot (`app/explore.py`), one
+  at a time, replaced whenever a new spot is clicked. It is never turn-guarded and never read by
+  `evaluator.py` - going deep on a tangent should never help or hurt the graded report. The
+  30-message cap is an anti-abuse ceiling, not a pedagogical limit like `MAX_TURNS`.

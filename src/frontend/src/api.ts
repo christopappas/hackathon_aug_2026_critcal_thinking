@@ -1,4 +1,13 @@
-import type { Anchor, ChatResponse, ContentSummary, HintResponse, Report, SessionResponse } from "./types";
+import type {
+  Anchor,
+  ChatResponse,
+  ContentSummary,
+  ExploreMessageResponse,
+  ExploreStartResponse,
+  HintResponse,
+  Report,
+  SessionResponse,
+} from "./types";
 
 const BASE = "/api";
 
@@ -35,4 +44,16 @@ export const requestHint = (sessionId: string, anchor: Anchor | null) =>
   request<HintResponse>("/hint", {
     method: "POST",
     body: JSON.stringify({ session_id: sessionId, anchor }),
+  });
+
+export const startExplore = (sessionId: string, anchor: Anchor) =>
+  request<ExploreStartResponse>("/explore/start", {
+    method: "POST",
+    body: JSON.stringify({ session_id: sessionId, anchor }),
+  });
+
+export const sendExploreMessage = (sessionId: string, message: string) =>
+  request<ExploreMessageResponse>("/explore/message", {
+    method: "POST",
+    body: JSON.stringify({ session_id: sessionId, message }),
   });
